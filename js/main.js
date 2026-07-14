@@ -1,0 +1,108 @@
+/* ============================================================
+   main.js
+   初期化・タブ切り替え・「編む」画面の上部バー（通常時/選択モード時）
+   の配線を行う。各モジュール自体はここに依存しない。
+   ============================================================ */
+window.KC = window.KC || {};
+
+(function (KC) {
+  "use strict";
+
+  const TABS = ["knit", "yarn", "size", "export"];
+  let currentTab = "knit";
+
+  function q(id) {
+    return document.getElementById(id);
+  }
+
+  function initTabs() {
+    document.querySelectorAll(".tabbar-btn").forEach((btn) => {
+      btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+    });
+  }
+
+  function activateTab(tab) {
+    if (!TABS.includes(tab)) return;
+    currentTab = tab;
+    TABS.forEach((t) => {
+      q("view-" + t).classList.toggle("is-active", t === tab);
+    });
+    document.querySelectorAll(".tabbar-btn").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.tab === tab);
+    });
+    KC.bus.emit("tabActivated", tab);
+    if (tab === "knit") {
+      // グリッドが非表示の間にコンテナサイズが変わっている可能性があるため再フィット
+      requestAnimationFrame(() => KC.grid.draw());
+    }
+  }
+
+  /* ---------------- 「編む」画面 上部バー ---------------- */
+  function initKnitToolbar() {
+    q("enter-selection-btn").addEventListener("click", () => KC.selection.enter());
+    q("zoom-reset-btn").addEventListener("click", () => KC.grid.resetView());
+
+    q("bulk-copy-btn").addEventListener("click", () => KC.selection.copySelected());
+    q("bulk-paste-btn").addEventListener("click", () => KC.selection.pasteFromSelected("all"));
+    q("bulk-paste-flip-btn").addEventListener("click", () => KC.selection.pasteFromSelected("all", true));
+    q("bulk-paste-color-btn").addEventListener("click", () => KC.selection.pasteFromSelected("colors"));
+    q("bulk-paste-pattern-btn").addEventListener("click", () => KC.selection.pasteFromSelected("pattern"));
+    q("bulk-clear-btn").addEventListener("click", () => KC.selection.clearChecks());
+    q("bulk-undo-btn").addEventListener("click", () => KC.selection.undoLastPaste());
+    q("bulk-done-btn").addEventListener("click", () => KC.selection.exit());
+
+    KC.bus.on("selectionChanged", updateKnitToolbar);
+    updateKnitToolbar();
+  }
+
+  function updateKnitToolbar() {
+    const active = KC.selection.isActive();
+    q("knit-toolbar-normal").classList.toggle("is-hidden", active);
+    q("knit-toolbar-bulk").classList.toggle("is-hidden", !active);
+    document.getElementById("tabbar").classList.toggle("is-hidden", active);
+
+    if (active) {
+      const n = KC.selection.count();
+      const clip = KC.selection.clipboardCount();
+      let status = `選択中: ${n}行`;
+      if (clip) status += `／コピー済み: ${clip}行`;
+      q("bulk-status").textContent = status;
+      q("bulk-copy-btn").disabled = n === 0;
+      const pasteDisabled = !KC.selection.canPaste();
+      q("bulk-paste-btn").disabled = pasteDisabled;
+      q("bulk-paste-flip-btn").disabled = pasteDisabled;
+      q("bulk-paste-color-btn").disabled = pasteDisabled;
+      q("bulk-paste-pattern-btn").disabled = pasteDisabled;
+      q("bulk-undo-btn").disabled = !KC.selection.canUndo();
+    }
+  }
+
+  /* ---------------- トースト ---------------- */
+  let toastTimer = null;
+  function initToast() {
+    KC.bus.on("toast", (msg) => {
+      const el = q("toast");
+      el.textContent = msg;
+      el.classList.add("is-visible");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove("is-visible"), 2200);
+    });
+  }
+
+  /* ---------------- 初期化 ---------------- */
+  function init() {
+    KC.state.reset();
+    initTabs();
+    initKnitToolbar();
+    initToast();
+    KC.grid.init();
+    KC.sheet.init();
+    KC.yarnTab.init();
+    KC.sizeTab.init();
+    KC.exportTab.init();
+    KC.howto.init();
+    activateTab("knit");
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})(window.KC);
