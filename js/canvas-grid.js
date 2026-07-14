@@ -44,10 +44,16 @@ window.KC = window.KC || {};
   function fitToWidth() {
     const state = S.get();
     const gutterW = gutterWidth();
-    if (!viewport || state.cols === 0) return;
+    if (!viewport || state.cols === 0 || state.rows.length === 0) return;
     const vw = viewport.clientWidth || 320;
+    const vh = viewport.clientHeight || 480;
     const gridW = state.cols * BASE_CELL;
-    let scale = (vw - gutterW - 16) / gridW;
+    const gridH = state.rows.length * BASE_CELL;
+    // 横幅基準・縦幅基準それぞれのスケールを計算し、小さい方（＝より縮小が必要な方）を
+    // 採用することで、横長・縦長どちらの編み図でも全体が必ず収まるようにする。
+    const scaleW = (vw - gutterW - 16) / gridW;
+    const scaleH = (vh - 16) / gridH;
+    let scale = Math.min(scaleW, scaleH);
     scale = clampScale(scale);
     view.scale = scale;
     view.tx = 8;
@@ -196,11 +202,7 @@ window.KC = window.KC || {};
         ctx.font = "18px 'Zen Maru Gothic', sans-serif";
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
-        ctx.fillText(
-          String(rowNumber),
-          selection.isActive() ? gutterW - 8 : gutterW - 12,
-          midY,
-        );
+        ctx.fillText(String(rowNumber), gutterW - 8, midY,);
       }
     });
     ctx.restore();
