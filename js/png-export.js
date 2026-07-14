@@ -99,7 +99,7 @@ window.KC = window.KC || {};
     const gridW = cell * cols,
       gridH = cell * rows;
     const offsetX = marginLeft + (availW - gridW) / 2;
-    const offsetY = marginTop + (availH - gridH) / 2;
+    const offsetY = marginTop;
 
     displayRows.forEach((dr, displayRowIndex) => {
       const row = dr.row;

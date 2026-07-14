@@ -14,7 +14,9 @@ window.KC = window.KC || {};
     rowsInput = document.getElementById("rows-input");
     colsInput = document.getElementById("cols-input");
 
-    document.getElementById("apply-size-btn").addEventListener("click", onApply);
+    document
+      .getElementById("apply-size-btn")
+      .addEventListener("click", onApply);
     document.getElementById("add-row-btn").addEventListener("click", () => {
       S.addRowAtEnd();
       afterChange();
@@ -41,6 +43,7 @@ window.KC = window.KC || {};
     const targetCols = parseInt(colsInput.value, 10) || 1;
     S.applySize(targetRows, targetCols);
     afterChange();
+    KC.bus.emit("toast", "サイズを変更しました");
   }
 
   function afterChange() {

@@ -21,23 +21,24 @@
         <button id="howto-btn" type="button" class="pill-btn subtle" title="使い方を見る">
           使い方
         </button>
-        <span class="toolbar-spacer"></span>
-        <button id="zoom-reset-btn" type="button" class="pill-btn subtle" title="拡大/縮小をリセット" aria-label="拡大/縮小をリセット">
-          拡大/縮小をリセット
-        </button>
-        <button id="enter-selection-btn" type="button" class="pill-btn subtle" title="複数の行を選択する">
-          コピー/貼り付け
-        </button>
+        <div>
+          <button id="zoom-reset-btn" type="button" class="pill-btn subtle" title="全体を見る" aria-label="全体を見る">
+            全体を見る
+          </button>
+          <button id="enter-selection-btn" type="button" class="pill-btn subtle" title="コピー/貼り付け">
+            コピー
+          </button>
+        </div>
       </div>
 
       <div id="knit-toolbar-bulk" class="knit-toolbar is-hidden">
         <span id="bulk-status" class="bulk-status">選択中: 0行</span>
         <div class="bulk-actions">
           <div class="bulk-actions-row">
-            <button id="bulk-copy-btn" type="button" class="pill-btn subtle" disabled>コピー</button>
-            <button id="bulk-clear-btn" type="button" class="pill-btn subtle">選択解除</button>
+            <button id="bulk-copy-btn" type="button" class="pill-btn subtle" disabled>選択した行をコピー</button>
+            <button id="bulk-clear-btn" type="button" class="pill-btn subtle">選択を解除</button>
             <button id="bulk-undo-btn" type="button" class="pill-btn subtle" disabled>最後の貼り付けを取り消す</button>
-            <button id="bulk-done-btn" type="button" class="pill-btn" style="margin-left: auto;">完了</button>
+            <button id="bulk-done-btn" type="button"><i class="ti ti-x" aria-hidden="true"></i></button>
           </div>
           <div class="bulk-actions-row">
             <button id="bulk-paste-btn" type="button" class="pill-btn subtle" disabled title="貼り付け">貼り付け</button>
@@ -179,10 +180,10 @@
       </button>
     </div>
     <ul class="howto-list">
-      <li><i class="ti ti-hand-click" aria-hidden="true"></i>マス目をタップ：地色⇄柄色を切り替え</li>
+      <li><i class="ti ti-hand-click" aria-hidden="true"></i>マス目をタップ：地の色⇄柄の色を切り替え</li>
       <li><i class="ti ti-arrows-diagonal" aria-hidden="true"></i>ピンチ操作／ドラッグ：拡大縮小・表示位置の移動</li>
-      <li><i class="ti ti-list-numbers" aria-hidden="true"></i>行番号をタップ：その行の編集画面を開く</li>
-      <li><i class="ti ti-hand-finger" aria-hidden="true"></i>行を長押し：複数行の選択モードに入る</li>
+      <li><i class="ti ti-list-numbers" aria-hidden="true"></i>行番号をタップ：その行の編集メニューを開く</li>
+      <li><i class="ti ti-hand-finger" aria-hidden="true"></i>行を長押し：コピー/貼り付けモードに入る(右上のコピーボタンからも開けます)</li>
     </ul>
   </div>
 

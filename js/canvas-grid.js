@@ -15,8 +15,8 @@ window.KC = window.KC || {};
   const S = KC.state;
 
   const BASE_CELL = 26; // 拡大率1.0のときの1マスのサイズ(px)
-  const GUTTER_W = 26; // 行番号ガター幅（画面座標系・固定・ズームの影響を受けない）
-  const GUTTER_W_SELECTION = 42; // 選択モード時の行番号ガター幅（画面座標系・固定・ズームの影響を受けない）
+  const GUTTER_W = 40; // 行番号ガター幅（画面座標系・固定・ズームの影響を受けない）
+  const GUTTER_W_SELECTION = 56; // 選択モード時の行番号ガター幅（画面座標系・固定・ズームの影響を受けない）
   const MIN_SCALE = 0.15;
   const MAX_SCALE = 4;
   const TAP_MOVE_THRESHOLD = 9; // これ以上動いたらタップではなくパン/ドラッグ扱い
@@ -165,7 +165,7 @@ window.KC = window.KC || {};
     ctx.lineTo(gutterW - 0.5, vh);
     ctx.stroke();
 
-    const showNumbers = cellScreen >= 8;
+    const showNumbers = cellScreen >= 9;
     rowMeta.forEach(({ row, rowNumber, displayIndex, isSelected }) => {
       const screenY = view.ty + displayIndex * BASE_CELL * view.scale;
       const rowH = BASE_CELL * view.scale;
@@ -173,7 +173,7 @@ window.KC = window.KC || {};
 
       if (selection.isActive()) {
         const r = 9;
-        const cx = 13;
+        const cx = 16;
         ctx.beginPath();
         ctx.arc(cx, midY, r, 0, Math.PI * 2);
         ctx.fillStyle = isSelected ? "#C46A3E" : "#ffffff";
@@ -193,12 +193,12 @@ window.KC = window.KC || {};
       }
       if (showNumbers) {
         ctx.fillStyle = isSelected ? "#C46A3E" : "#6C6C68";
-        ctx.font = "12px 'Zen Maru Gothic', sans-serif";
+        ctx.font = "18px 'Zen Maru Gothic', sans-serif";
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
         ctx.fillText(
           String(rowNumber),
-          selection.isActive() ? gutterW - 6 : gutterW - 8,
+          selection.isActive() ? gutterW - 8 : gutterW - 12,
           midY,
         );
       }

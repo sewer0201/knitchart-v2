@@ -124,7 +124,7 @@ input {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
   padding: 8px 10px;
   background: var(--panel);
   border-bottom: 1px solid var(--panel-line);
@@ -133,14 +133,15 @@ input {
 .knit-toolbar.is-hidden {
   display: none;
 }
+.knit-toolbar>div {
+  display: flex;
+  gap: 10px;
+}
 .toolbar-hint {
   flex: 1 1 auto;
   font-size: 0.78rem;
   color: var(--ink-soft);
   line-height: 1.4;
-}
-.toolbar-spacer {
-  flex: 1 1 auto;
 }
 .icon-btn {
   flex-shrink: 0;
@@ -219,6 +220,21 @@ input {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+#bulk-done-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 30px;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--accent);
+  background-color: var(--panel);
+  border: none;
 }
 
 /* ---------------- grid viewport (canvas) ---------------- */
