@@ -9,6 +9,17 @@ window.KC = window.KC || {};
   "use strict";
   const S = KC.state;
 
+  const NUMBER_COLOR_NORMAL = "#a1a1a1";
+  const NUMBER_COLOR_FIVE = "#6C6C68";
+
+  function numberColor(n) {
+    return n % 5 === 0 ? NUMBER_COLOR_FIVE : NUMBER_COLOR_NORMAL;
+  }
+  function numberFont(n, sizePx, family) {
+    const weight = n % 5 === 0 ? "bold " : "";
+    return `${weight}${sizePx}px ${family}`;
+  }
+
   // state を受け取り、書き出し用の Canvas を返す（副作用なし＝テストしやすい）
   function renderToCanvas(state, projectName) {
     const W = 1240,
@@ -66,6 +77,7 @@ window.KC = window.KC || {};
     }
 
     const LABEL_FONT = "13px sans-serif";
+    const colHeaderH = 26; // 目数番号を表示するための上部余白
     const groups = [];
     displayRows.forEach((dr, displayIndex) => {
       const key = (dr.row.bg || "none") + "|" + (dr.row.fg || "none");
@@ -88,7 +100,7 @@ window.KC = window.KC || {};
       if (w > maxLabelWidth) maxLabelWidth = w;
     });
 
-    const marginTop = legendBottom + 30;
+    const marginTop = legendBottom + 30 + colHeaderH;
     const marginBottom = 60;
     const marginLeft = 90;
     const bracketSpace = 22;
@@ -116,12 +128,23 @@ window.KC = window.KC || {};
         ctx.strokeRect(x + 0.5, y + 0.5, cell, cell);
       }
       if (cell >= 10) {
-        ctx.fillStyle = "#6C6C68";
-        ctx.font = `${Math.min(14, cell)}px sans-serif`;
+        ctx.fillStyle = numberColor(rowNumber);
+        ctx.font = numberFont(rowNumber, Math.min(14, cell));
         ctx.textAlign = "right";
         ctx.fillText(String(rowNumber), offsetX - 10, y + cell / 2 + 4);
       }
     });
+
+    if (cell >= 10) {
+      ctx.textAlign = "center";
+      for (let c = 0; c < cols; c++) {
+        const colNumber = c + 1;
+        ctx.fillStyle = numberColor(colNumber);
+        ctx.font = numberFont(colNumber, Math.min(14, cell));
+        const x = offsetX + c * cell + cell / 2;
+        ctx.fillText(String(colNumber), x, offsetY - 10);
+      }
+    }
 
     ctx.strokeStyle = "#161615";
     ctx.lineWidth = 2;

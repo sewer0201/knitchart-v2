@@ -24,6 +24,7 @@ window.KC = window.KC || {};
     els.repeatVal = q("row-repeat-val");
     els.repeatMinus = q("row-repeat-minus");
     els.repeatPlus = q("row-repeat-plus");
+    els.releaseRepeatBtn = q("row-release-repeat-btn");
     els.bgSwatches = q("row-bg-swatches");
     els.fgSwatches = q("row-fg-swatches");
     els.deleteBtn = q("row-delete-btn");
@@ -32,6 +33,7 @@ window.KC = window.KC || {};
     els.closeBtn.addEventListener("click", close);
     els.repeatMinus.addEventListener("click", () => changeRepeat(-1));
     els.repeatPlus.addEventListener("click", () => changeRepeat(1));
+    els.releaseRepeatBtn.addEventListener("click", onReleaseRepeat);
     els.deleteBtn.addEventListener("click", onDelete);
 
     attachSwipeToClose(els.sheet);
@@ -97,6 +99,7 @@ window.KC = window.KC || {};
     els.repeatVal.textContent = row.repeat;
     els.repeatMinus.disabled = row.repeat <= S.REPEAT_MIN;
     els.repeatPlus.disabled = row.repeat >= S.REPEAT_MAX;
+    els.releaseRepeatBtn.disabled = S.isRepeatReleased(row);
 
     renderSwatchGrid(els.bgSwatches, row.bg, "bg", row);
     renderSwatchGrid(els.fgSwatches, row.fg, "fg", row);
@@ -147,6 +150,14 @@ window.KC = window.KC || {};
     if (!row) return;
     S.setRowRepeat(row, row.repeat + delta);
     KC.bus.emit("rowsChanged");
+  }
+
+  function onReleaseRepeat() {
+    const row = currentRow();
+    if (!row) return;
+    S.releaseRepeat(row);
+    KC.bus.emit("rowsChanged");
+    KC.bus.emit("toast", "この行のくり返しを解除しました");
   }
 
   function onDelete() {

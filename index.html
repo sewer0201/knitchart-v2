@@ -30,8 +30,8 @@
             <button id="zoom-reset-btn" type="button" class="pill-btn subtle" title="全体を見る" aria-label="全体を見る">
               全体を見る
             </button>
-            <button id="enter-selection-btn" type="button" class="pill-btn subtle" title="コピー/貼り付け">
-              コピー
+            <button id="enter-selection-btn" type="button" class="pill-btn subtle" title="複数行操作">
+              複数行操作
             </button>
           </div>
         </div>
@@ -41,6 +41,8 @@
           <div class="bulk-actions">
             <div class="bulk-actions-row">
               <button id="bulk-copy-btn" type="button" class="pill-btn subtle" disabled>選択した行をコピー</button>
+              <button id="bulk-release-repeat-btn" type="button" class="pill-btn subtle" disabled
+                title="選択した行の柄をキープしたまま、くり返しを解除します">選択した行の繰り返しを解除する</button>
               <button id="bulk-clear-btn" type="button" class="pill-btn subtle">選択を解除</button>
               <button id="bulk-undo-btn" type="button" class="pill-btn subtle" disabled>最後の貼り付けを取り消す</button>
               <button id="bulk-done-btn" type="button"><i class="ti ti-x" aria-hidden="true"></i></button>
@@ -95,6 +97,13 @@
               <div class="size-field">
                 <label for="cols-input">目数（列）</label>
                 <input type="number" id="cols-input" min="1" max="300" value="40">
+              </div>
+            </div>
+            <div class="row-direction-field">
+              <p class="row-direction-label">行数を増減する方向</p>
+              <div class="row-direction-toggle" role="group" aria-label="行数を増減する方向">
+                <button type="button" class="row-direction-btn is-active" data-direction="top">上（大きい番号側）</button>
+                <button type="button" class="row-direction-btn" data-direction="bottom">下（小さい番号側）</button>
               </div>
             </div>
             <button id="apply-size-btn" type="button" class="size-apply-btn">サイズを反映</button>
@@ -166,12 +175,15 @@
 
       <div class="sheet-block">
         <p class="sheet-block-label">くり返し目数</p>
-        <div class="repeat-stepper">
-          <button id="row-repeat-minus" type="button" aria-label="くり返し目数を減らす"><i class="ti ti-minus"
-              aria-hidden="true"></i></button>
-          <span id="row-repeat-val">12</span>
-          <button id="row-repeat-plus" type="button" aria-label="くり返し目数を増やす"><i class="ti ti-plus"
-              aria-hidden="true"></i></button>
+        <div class="repeat-row">
+          <div class="repeat-stepper">
+            <button id="row-repeat-minus" type="button" aria-label="くり返し目数を減らす"><i class="ti ti-minus" aria-hidden="true"></i></button>
+            <span id="row-repeat-val">12</span>
+            <button id="row-repeat-plus" type="button" aria-label="くり返し目数を増やす"><i class="ti ti-plus" aria-hidden="true"></i></button>
+          </div>
+          <button id="row-release-repeat-btn" type="button" class="release-repeat-btn" title="今の柄をキープしたまま、この行のくり返しをやめて1目ずつ編集できるようにします">
+            <i class="ti ti-repeat-off" aria-hidden="true"></i>この行の繰り返しを解除する
+          </button>
         </div>
       </div>
 

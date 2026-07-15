@@ -9,6 +9,7 @@ window.KC = window.KC || {};
   "use strict";
   const S = KC.state;
   let rowsInput, colsInput;
+  let rowDirection = "top"; // "top"（大きい番号側）／"bottom"（小さい番号側）
 
   function init() {
     rowsInput = document.getElementById("rows-input");
@@ -18,7 +19,7 @@ window.KC = window.KC || {};
       .getElementById("apply-size-btn")
       .addEventListener("click", onApply);
     document.getElementById("add-row-btn").addEventListener("click", () => {
-      S.addRowAtEnd();
+      S.addRow(rowDirection);
       afterChange();
     });
     document.getElementById("add-col-btn").addEventListener("click", () => {
@@ -28,6 +29,15 @@ window.KC = window.KC || {};
     document.getElementById("remove-col-btn").addEventListener("click", () => {
       S.removeColumn();
       afterChange();
+    });
+
+    document.querySelectorAll(".row-direction-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        rowDirection = btn.dataset.direction;
+        document.querySelectorAll(".row-direction-btn").forEach((b) => {
+          b.classList.toggle("is-active", b === btn);
+        });
+      });
     });
 
     KC.bus.on("dataReplaced", render);
@@ -41,7 +51,7 @@ window.KC = window.KC || {};
   function onApply() {
     const targetRows = parseInt(rowsInput.value, 10) || 1;
     const targetCols = parseInt(colsInput.value, 10) || 1;
-    S.applySize(targetRows, targetCols);
+    S.applySize(targetRows, targetCols, rowDirection);
     afterChange();
     KC.bus.emit("toast", "サイズを変更しました");
   }

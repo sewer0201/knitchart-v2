@@ -43,6 +43,10 @@ window.KC = window.KC || {};
     q("zoom-reset-btn").addEventListener("click", () => KC.grid.resetView());
 
     q("bulk-copy-btn").addEventListener("click", () => KC.selection.copySelected());
+    q("bulk-release-repeat-btn").addEventListener("click", () => {
+      KC.selection.releaseRepeatForSelected();
+      KC.bus.emit("toast", "選択した行の繰り返しを解除しました");
+    });
     q("bulk-paste-btn").addEventListener("click", () => KC.selection.pasteFromSelected("all"));
     q("bulk-paste-flip-btn").addEventListener("click", () => KC.selection.pasteFromSelected("all", true));
     q("bulk-paste-color-btn").addEventListener("click", () => KC.selection.pasteFromSelected("colors"));
@@ -68,6 +72,7 @@ window.KC = window.KC || {};
       if (clip) status += `／コピー済み: ${clip}行`;
       q("bulk-status").textContent = status;
       q("bulk-copy-btn").disabled = n === 0;
+      q("bulk-release-repeat-btn").disabled = n === 0;
       const pasteDisabled = !KC.selection.canPaste();
       q("bulk-paste-btn").disabled = pasteDisabled;
       q("bulk-paste-flip-btn").disabled = pasteDisabled;

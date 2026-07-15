@@ -115,10 +115,29 @@ window.KC = window.KC || {};
     row.stitches = newStitches;
     row.offset = normalizeOffset(row.offset, n);
   }
+  // 現在タイル表示されている柄をそのままの見た目で確定させ、以後は
+  // くり返しをせず全目数ぶんを個別に編集できる状態にする（柄はキープされる）。
+  function isRepeatReleased(row) {
+    return row.repeat >= state.cols;
+  }
+  function releaseRepeat(row) {
+    const targetCols = state.cols;
+    if (row.repeat >= targetCols) return; // 既に解除済み
+    const newStitches = [];
+    for (let c = 0; c < targetCols; c++) newStitches.push(stitchAt(row, c));
+    row.stitches = newStitches;
+    row.repeat = targetCols;
+    row.offset = 0;
+  }
   function addRowAtEnd() {
-    const last = state.rows[state.rows.length - 1];
-    const row = makeRow(last ? last.repeat : 12, last ? last.bg : null, last ? last.fg : null);
-    state.rows.push(row);
+    return addRow("top");
+  }
+  // direction: "top"（大きい番号側＝配列の末尾）／"bottom"（小さい番号側＝配列の先頭）
+  function addRow(direction) {
+    const refRow = direction === "bottom" ? state.rows[0] : state.rows[state.rows.length - 1];
+    const row = makeRow(refRow ? refRow.repeat : 12, refRow ? refRow.bg : null, refRow ? refRow.fg : null);
+    if (direction === "bottom") state.rows.unshift(row);
+    else state.rows.push(row);
     return row;
   }
   function removeRow(uid) {
@@ -128,14 +147,18 @@ window.KC = window.KC || {};
     state.rows.splice(idx, 1);
     return true;
   }
-  function applySize(targetRows, targetCols) {
+  // direction: "top"（大きい番号側から増減）／"bottom"（小さい番号側から増減）
+  function applySize(targetRows, targetCols, direction) {
+    direction = direction === "bottom" ? "bottom" : "top";
     targetRows = clamp(targetRows, SIZE_MIN, SIZE_MAX);
     targetCols = clamp(targetCols, SIZE_MIN, SIZE_MAX);
     while (state.rows.length < targetRows) {
-      const last = state.rows[state.rows.length - 1];
-      state.rows.push(makeRow(last ? last.repeat : 12, last ? last.bg : null, last ? last.fg : null));
+      addRow(direction);
     }
-    while (state.rows.length > targetRows) state.rows.pop();
+    while (state.rows.length > targetRows) {
+      if (direction === "bottom") state.rows.shift();
+      else state.rows.pop();
+    }
     state.cols = targetCols;
   }
   function addColumn() {
@@ -190,8 +213,12 @@ window.KC = window.KC || {};
       yarnUidMap[y.uid] = uid;
       return { uid, id: String(y.id), color: y.color || "#cccccc" };
     });
+    const targetCols = clamp(data.cols, SIZE_MIN, SIZE_MAX);
+    // 通常のくり返し行は REPEAT_MIN〜REPEAT_MAX、
+    // くり返しを解除した行（目数いっぱいまで拡張済み）はその目数まで許容する
+    const maxRepeat = Math.max(REPEAT_MAX, targetCols);
     const newRows = data.rows.map((r) => {
-      const repeat = clamp(r.repeat || 12, REPEAT_MIN, REPEAT_MAX);
+      const repeat = clamp(r.repeat || 12, REPEAT_MIN, maxRepeat);
       let stitches = Array.isArray(r.stitches) ? r.stitches.slice(0, repeat) : [];
       while (stitches.length < repeat) stitches.push(false);
       const rawOffset = typeof r.offset === "number" ? r.offset : 0;
@@ -206,7 +233,7 @@ window.KC = window.KC || {};
       };
     });
     const next = {
-      cols: clamp(data.cols, SIZE_MIN, SIZE_MAX),
+      cols: targetCols,
       yarns: newYarns,
       rows: newRows.length ? newRows : [makeRow(12, null, null)],
     };
@@ -239,7 +266,10 @@ window.KC = window.KC || {};
     toggleStitch,
     stitchAt,
     setRowRepeat,
+    isRepeatReleased,
+    releaseRepeat,
     addRowAtEnd,
+    addRow,
     removeRow,
     applySize,
     addColumn,

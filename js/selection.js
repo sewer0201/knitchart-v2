@@ -141,6 +141,20 @@ window.KC = window.KC || {};
     return multiClipboard ? multiClipboard.count : 0;
   }
 
+  // 選択中の行すべてについて、今の柄をキープしたままくり返しを解除する
+  function releaseRepeatForSelected() {
+    const state = S.get();
+    cleanupMissing();
+    if (selectedUids.size === 0) return;
+    saveUndoSnapshot();
+    state.rows.forEach((row) => {
+      if (selectedUids.has(row.uid)) S.releaseRepeat(row);
+    });
+    selectedUids.clear();
+    KC.bus.emit("selectionChanged");
+    KC.bus.emit("rowsChanged");
+  }
+
   KC.selection = {
     isActive,
     enter,
@@ -157,5 +171,6 @@ window.KC = window.KC || {};
     canUndo,
     undoLastPaste,
     clipboardCount,
+    releaseRepeatForSelected,
   };
 })(window.KC);
