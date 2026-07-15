@@ -19,12 +19,14 @@ window.KC = window.KC || {};
     return data;
   }
 
-  function exportData() {
-    return S.buildExportData(1);
+  function exportData(projectName) {
+    const data = S.buildExportData(1);
+    data.name = projectName || "";
+    return data;
   }
 
   function download(projectName) {
-    const data = exportData();
+    const data = exportData(projectName);
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -36,6 +38,8 @@ window.KC = window.KC || {};
     URL.revokeObjectURL(url);
   }
 
+  // onSuccess は、読み込んだファイルに保存されていたプロジェクト名
+  // （無ければ空文字）を第1引数で受け取る。
   function importFromFile(file, onSuccess, onError) {
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -43,7 +47,8 @@ window.KC = window.KC || {};
         const raw = JSON.parse(ev.target.result);
         const data = migrate(raw);
         S.loadFromData(data);
-        onSuccess && onSuccess();
+        const name = typeof data.name === "string" ? data.name : "";
+        onSuccess && onSuccess(name);
       } catch (err) {
         onError && onError(err);
       }

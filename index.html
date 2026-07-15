@@ -1,205 +1,245 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="robots" content="noindex">
-<title>編み図メーカー</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.33.0/dist/tabler-icons.min.css">
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>編み図メーカー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Maru+Gothic:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.33.0/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
-<div class="app-shell">
+  <div class="app-shell">
 
-  <div id="views">
+    <div id="views">
 
-    <!-- ============ 編む（メイン） ============ -->
-    <section id="view-knit" class="view is-active">
-      <div id="knit-toolbar-normal" class="knit-toolbar">
-        <button id="howto-btn" type="button" class="pill-btn subtle" title="使い方を見る">
-          使い方
-        </button>
-        <div>
-          <button id="zoom-reset-btn" type="button" class="pill-btn subtle" title="全体を見る" aria-label="全体を見る">
-            全体を見る
+      <!-- ============ 編む（メイン） ============ -->
+      <section id="view-knit" class="view is-active">
+        <div id="knit-toolbar-normal" class="knit-toolbar">
+          <button id="howto-btn" type="button" class="pill-btn subtle" title="使い方を見る">
+            使い方
           </button>
-          <button id="enter-selection-btn" type="button" class="pill-btn subtle" title="コピー/貼り付け">
-            コピー
-          </button>
-        </div>
-      </div>
-
-      <div id="knit-toolbar-bulk" class="knit-toolbar is-hidden">
-        <span id="bulk-status" class="bulk-status">選択中: 0行</span>
-        <div class="bulk-actions">
-          <div class="bulk-actions-row">
-            <button id="bulk-copy-btn" type="button" class="pill-btn subtle" disabled>選択した行をコピー</button>
-            <button id="bulk-clear-btn" type="button" class="pill-btn subtle">選択を解除</button>
-            <button id="bulk-undo-btn" type="button" class="pill-btn subtle" disabled>最後の貼り付けを取り消す</button>
-            <button id="bulk-done-btn" type="button"><i class="ti ti-x" aria-hidden="true"></i></button>
-          </div>
-          <div class="bulk-actions-row">
-            <button id="bulk-paste-btn" type="button" class="pill-btn subtle" disabled title="貼り付け">貼り付け</button>
-            <button id="bulk-paste-flip-btn" type="button" class="pill-btn subtle" disabled title="上下反転して貼り付け">上下反転して貼り付け</button>
-            <button id="bulk-paste-color-btn" type="button" class="pill-btn subtle" disabled title="色だけ貼り付け">色だけ貼り付け</button>
-            <button id="bulk-paste-pattern-btn" type="button" class="pill-btn subtle" disabled title="柄だけ貼り付け">柄だけ貼り付け</button>
+          <div>
+            <button id="zoom-reset-btn" type="button" class="pill-btn subtle" title="全体を見る" aria-label="全体を見る">
+              全体を見る
+            </button>
+            <button id="enter-selection-btn" type="button" class="pill-btn subtle" title="コピー/貼り付け">
+              コピー
+            </button>
           </div>
         </div>
-      </div>
 
-      <div id="grid-viewport" class="grid-viewport">
-        <canvas id="grid-canvas"></canvas>
-      </div>
-    </section>
-
-    <!-- ============ 毛糸 ============ -->
-    <section id="view-yarn" class="view">
-      <div class="tab-content">
-        <div class="panel">
-          <h2>毛糸を登録</h2>
-          <form id="yarn-form" class="yarn-form">
-            <input type="text" id="yarn-id-input" placeholder="番号（例: 123）" required>
-            <input type="color" id="yarn-color-input" value="#ccbca3">
-            <button type="submit">追加</button>
-          </form>
-          <ul id="yarn-list" class="yarn-list"></ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ サイズ ============ -->
-    <section id="view-size" class="view">
-      <div class="tab-content">
-        <div class="panel">
-          <h2>編み図のサイズ</h2>
-          <div class="size-row">
-            <div class="size-field">
-              <label for="rows-input">行数</label>
-              <input type="number" id="rows-input" min="1" max="300" value="40">
+        <div id="knit-toolbar-bulk" class="knit-toolbar is-hidden">
+          <span id="bulk-status" class="bulk-status">選択中: 0行</span>
+          <div class="bulk-actions">
+            <div class="bulk-actions-row">
+              <button id="bulk-copy-btn" type="button" class="pill-btn subtle" disabled>選択した行をコピー</button>
+              <button id="bulk-clear-btn" type="button" class="pill-btn subtle">選択を解除</button>
+              <button id="bulk-undo-btn" type="button" class="pill-btn subtle" disabled>最後の貼り付けを取り消す</button>
+              <button id="bulk-done-btn" type="button"><i class="ti ti-x" aria-hidden="true"></i></button>
             </div>
-            <div class="size-field">
-              <label for="cols-input">目数（列）</label>
-              <input type="number" id="cols-input" min="1" max="300" value="40">
+            <div class="bulk-actions-row">
+              <button id="bulk-paste-btn" type="button" class="pill-btn subtle" disabled title="貼り付け">貼り付け</button>
+              <button id="bulk-paste-flip-btn" type="button" class="pill-btn subtle" disabled
+                title="上下反転して貼り付け">上下反転して貼り付け</button>
+              <button id="bulk-paste-color-btn" type="button" class="pill-btn subtle" disabled
+                title="色だけ貼り付け">色だけ貼り付け</button>
+              <button id="bulk-paste-pattern-btn" type="button" class="pill-btn subtle" disabled
+                title="柄だけ貼り付け">柄だけ貼り付け</button>
             </div>
           </div>
-          <button id="apply-size-btn" type="button" class="size-apply-btn">サイズを反映</button>
-          <div class="size-quick-actions">
-            <button id="add-row-btn" type="button"><i class="ti ti-plus" aria-hidden="true"></i> 行を1つ追加</button>
-            <button id="add-col-btn" type="button"><i class="ti ti-plus" aria-hidden="true"></i> 列を1つ追加</button>
-            <button id="remove-col-btn" type="button"><i class="ti ti-minus" aria-hidden="true"></i> 列を1つ削除</button>
+        </div>
+
+        <div id="grid-viewport" class="grid-viewport">
+          <canvas id="grid-canvas"></canvas>
+        </div>
+      </section>
+
+      <!-- ============ 毛糸 ============ -->
+      <section id="view-yarn" class="view">
+        <div class="tab-content">
+          <div class="panel">
+            <div class="panel-header-row">
+              <h2>毛糸を設定</h2>
+              <button id="yarn-preset-btn" type="button" class="pill-btn subtle">
+                <i class="ti ti-list-details" aria-hidden="true"></i>リストから追加
+              </button>
+            </div>
+            <form id="yarn-form" class="yarn-form">
+              <input type="text" id="yarn-id-input" placeholder="番号（例: 123）" required>
+              <input type="color" id="yarn-color-input" value="#ccbca3">
+              <button type="submit">追加</button>
+            </form>
+            <ul id="yarn-list" class="yarn-list"></ul>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ============ 書き出し ============ -->
-    <section id="view-export" class="view">
-      <div class="tab-content">
-        <div class="panel">
-          <h2>設定</h2>
-          <label class="proj-name-field" for="project-name-input">編み図の名前
+      <!-- ============ サイズ ============ -->
+      <section id="view-size" class="view">
+        <div class="tab-content">
+          <div class="panel">
+            <h2>編み図のサイズ</h2>
+            <div class="size-row">
+              <div class="size-field">
+                <label for="rows-input">行数</label>
+                <input type="number" id="rows-input" min="1" max="300" value="40">
+              </div>
+              <div class="size-field">
+                <label for="cols-input">目数（列）</label>
+                <input type="number" id="cols-input" min="1" max="300" value="40">
+              </div>
+            </div>
+            <button id="apply-size-btn" type="button" class="size-apply-btn">サイズを反映</button>
+            <div class="size-quick-actions">
+              <button id="add-row-btn" type="button"><i class="ti ti-plus" aria-hidden="true"></i> 行を1つ追加</button>
+              <button id="add-col-btn" type="button"><i class="ti ti-plus" aria-hidden="true"></i> 列を1つ追加</button>
+              <button id="remove-col-btn" type="button"><i class="ti ti-minus" aria-hidden="true"></i> 列を1つ削除</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 書き出し ============ -->
+      <section id="view-export" class="view">
+        <div class="tab-content">
+          <div class="panel">
+            <h2>編み図の名前</h2>
             <input type="text" id="project-name-input" value="編み図">
-          </label>
-        </div>
-        <div class="panel">
-          <h2>書き出し・読み込み</h2>
-          <div class="export-actions">
-            <button id="export-png-btn" type="button">画像として保存（PNG / A4縦）</button>
-            <button id="export-json-btn" type="button">プロジェクトを保存（.json）</button>
-            <label class="file-label">プロジェクトを読み込む
-              <input type="file" id="import-input" accept="application/json,.json">
-            </label>
+          </div>
+          <div class="panel">
+            <h2>プロジェクト</h2>
+            <div class="export-actions">
+              <button id="new-project-btn" type="button" class="danger-btn">
+                新規プロジェクトを開く<br>（今の編み図をリセットする）
+              </button>
+              <label class="file-label">保存したプロジェクトを読み込む
+                <input type="file" id="import-input" accept="application/json,.json">
+              </label>
+            </div>
+          </div>
+          <div class="panel">
+            <h2>書き出し</h2>
+            <div class="export-actions">
+              <button id="export-png-btn" type="button">画像として保存（PNG / A4縦）</button>
+              <button id="export-json-btn" type="button">プロジェクトを保存（.json）</button>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-  </div>
+    </div>
 
-  <!-- ============ 下部タブバー ============ -->
-  <nav id="tabbar" class="tabbar">
-    <button type="button" class="tabbar-btn is-active" data-tab="knit">
-      <i class="ti ti-grid-dots" aria-hidden="true"></i><span>編み図</span>
-    </button>
-    <button type="button" class="tabbar-btn" data-tab="yarn">
-      <i class="ti ti-ball-volleyball"></i><span>毛糸</span>
-    </button>
-    <button type="button" class="tabbar-btn" data-tab="size">
-      <i class="ti ti-dimensions"></i><span>サイズ</span>
-    </button>
-    <button type="button" class="tabbar-btn" data-tab="export">
-      <i class="ti ti-download" aria-hidden="true"></i><span>保存</span>
-    </button>
-  </nav>
-
-  <!-- ============ 行編集ボトムシート ============ -->
-  <div id="sheet-backdrop" class="sheet-backdrop"></div>
-  <div id="row-sheet" class="row-sheet" role="dialog" aria-modal="true" aria-labelledby="row-sheet-title">
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-      <h3 id="row-sheet-title">段を編集</h3>
-      <button id="row-sheet-close" type="button" class="sheet-close-btn" aria-label="閉じる">
-        <i class="ti ti-x" aria-hidden="true"></i>
+    <!-- ============ 下部タブバー ============ -->
+    <nav id="tabbar" class="tabbar">
+      <button type="button" class="tabbar-btn is-active" data-tab="knit">
+        <i class="ti ti-grid-dots" aria-hidden="true"></i><span>編み図</span>
       </button>
-    </div>
-
-    <div class="sheet-block">
-      <p class="sheet-block-label">くり返し目数</p>
-      <div class="repeat-stepper">
-        <button id="row-repeat-minus" type="button" aria-label="くり返し目数を減らす"><i class="ti ti-minus" aria-hidden="true"></i></button>
-        <span id="row-repeat-val">12</span>
-        <button id="row-repeat-plus" type="button" aria-label="くり返し目数を増やす"><i class="ti ti-plus" aria-hidden="true"></i></button>
-      </div>
-    </div>
-
-    <div class="sheet-colors-grid">
-      <div class="sheet-block">
-        <p class="sheet-block-label">地の色</p>
-        <div id="row-bg-swatches" class="swatch-row"></div>
-      </div>
-      <div class="sheet-block">
-        <p class="sheet-block-label">柄の色</p>
-        <div id="row-fg-swatches" class="swatch-row"></div>
-      </div>
-    </div>
-
-    <button id="row-delete-btn" type="button" class="sheet-delete-btn"><i class="ti ti-x" aria-hidden="true"></i>この行を削除</button>
-  </div>
-
-  <div id="toast" class="toast"></div>
-
-  <!-- ============ 使い方モーダル ============ -->
-  <div id="howto-backdrop" class="howto-backdrop"></div>
-  <div id="howto-modal" class="howto-modal" role="dialog" aria-modal="true" aria-labelledby="howto-title">
-    <div class="howto-header">
-      <h3 id="howto-title">使い方</h3>
-      <button id="howto-close" type="button" class="sheet-close-btn" aria-label="閉じる">
-        <i class="ti ti-x" aria-hidden="true"></i>
+      <button type="button" class="tabbar-btn" data-tab="yarn">
+        <i class="ti ti-ball-volleyball"></i><span>毛糸</span>
       </button>
+      <button type="button" class="tabbar-btn" data-tab="size">
+        <i class="ti ti-dimensions"></i><span>サイズ</span>
+      </button>
+      <button type="button" class="tabbar-btn" data-tab="export">
+        <i class="ti ti-download" aria-hidden="true"></i><span>保存</span>
+      </button>
+    </nav>
+
+    <!-- ============ 行編集ボトムシート ============ -->
+    <div id="sheet-backdrop" class="sheet-backdrop"></div>
+    <div id="row-sheet" class="row-sheet" role="dialog" aria-modal="true" aria-labelledby="row-sheet-title">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 id="row-sheet-title">段を編集</h3>
+        <button id="row-sheet-close" type="button" class="sheet-close-btn" aria-label="閉じる">
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="sheet-block">
+        <p class="sheet-block-label">くり返し目数</p>
+        <div class="repeat-stepper">
+          <button id="row-repeat-minus" type="button" aria-label="くり返し目数を減らす"><i class="ti ti-minus"
+              aria-hidden="true"></i></button>
+          <span id="row-repeat-val">12</span>
+          <button id="row-repeat-plus" type="button" aria-label="くり返し目数を増やす"><i class="ti ti-plus"
+              aria-hidden="true"></i></button>
+        </div>
+      </div>
+
+      <div class="sheet-colors-grid">
+        <div class="sheet-block">
+          <p class="sheet-block-label">地の色</p>
+          <div id="row-bg-swatches" class="swatch-row"></div>
+        </div>
+        <div class="sheet-block">
+          <p class="sheet-block-label">柄の色</p>
+          <div id="row-fg-swatches" class="swatch-row"></div>
+        </div>
+      </div>
+
+      <button id="row-delete-btn" type="button" class="sheet-delete-btn"><i class="ti ti-x"
+          aria-hidden="true"></i>この行を削除</button>
     </div>
-    <ul class="howto-list">
-      <li><i class="ti ti-hand-click" aria-hidden="true"></i>マス目をタップ：地の色⇄柄の色を切り替え</li>
-      <li><i class="ti ti-arrows-diagonal" aria-hidden="true"></i>ピンチ操作／ドラッグ：拡大縮小・表示位置の移動</li>
-      <li><i class="ti ti-list-numbers" aria-hidden="true"></i>行番号をタップ：その行の編集メニューを開く</li>
-      <li><i class="ti ti-hand-finger" aria-hidden="true"></i>行を長押し：コピー/貼り付けモードに入る(右上のコピーボタンからも開けます)</li>
-    </ul>
+
+    <!-- ============ 毛糸リスト選択ボトムシート ============ -->
+    <div id="preset-sheet-backdrop" class="sheet-backdrop"></div>
+    <div id="preset-sheet" class="row-sheet" role="dialog" aria-modal="true" aria-labelledby="preset-sheet-title">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 id="preset-sheet-title">リストから追加</h3>
+        <button id="preset-sheet-close" type="button" class="sheet-close-btn" aria-label="閉じる">
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div id="preset-list"></div>
+      <button id="preset-add-btn" type="button" class="preset-add-btn" disabled>選択した色を追加</button>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <!-- ============ 使い方モーダル ============ -->
+    <div id="howto-backdrop" class="howto-backdrop"></div>
+    <div id="howto-modal" class="howto-modal" role="dialog" aria-modal="true" aria-labelledby="howto-title">
+      <div class="howto-header">
+        <h3 id="howto-title">使い方</h3>
+        <button id="howto-close" type="button" class="sheet-close-btn" aria-label="閉じる">
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </div>
+      <ul class="howto-list">
+        <li><i class="ti ti-hand-click" aria-hidden="true"></i>マス目をタップ：地の色⇄柄の色を切り替え</li>
+        <li><i class="ti ti-arrows-diagonal" aria-hidden="true"></i>ピンチ操作／ドラッグ：拡大縮小・表示位置の移動</li>
+        <li><i class="ti ti-list-numbers" aria-hidden="true"></i>行番号をタップ：その行の編集メニューを開く</li>
+        <li><i class="ti ti-hand-finger" aria-hidden="true"></i>行を長押し：コピー/貼り付けモードに入る(右上のコピーボタンからも開けます)</li>
+      </ul>
+    </div>
+
   </div>
 
-</div>
-
-<script src="js/bus.js"></script>
-<script src="js/state.js"></script>
-<script src="js/selection.js"></script>
-<script src="js/canvas-grid.js"></script>
-<script src="js/sheet.js"></script>
-<script src="js/yarn-tab.js"></script>
-<script src="js/size-tab.js"></script>
-<script src="js/png-export.js"></script>
-<script src="js/json-io.js"></script>
-<script src="js/export-tab.js"></script>
-<script src="js/howto.js"></script>
-<script src="js/main.js"></script>
+  <script src="js/bus.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/selection.js"></script>
+  <script src="js/canvas-grid.js"></script>
+  <script src="js/sheet.js"></script>
+  <script src="js/yarn-tab.js"></script>
+  <script src="js/yarn-presets.js"></script>
+  <script src="js/preset-sheet.js"></script>
+  <script src="js/size-tab.js"></script>
+  <script src="js/png-export.js"></script>
+  <script src="js/json-io.js"></script>
+  <script src="js/export-tab.js"></script>
+  <script src="js/howto.js"></script>
+  <script src="js/main.js"></script>
 </body>
+
 </html>

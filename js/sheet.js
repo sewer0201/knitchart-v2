@@ -137,7 +137,7 @@ window.KC = window.KC || {};
     if (state.yarns.length === 0) {
       const note = document.createElement("p");
       note.className = "swatch-empty-note";
-      note.textContent = "毛糸タブで毛糸を登録してください";
+      note.textContent = "毛糸タブで毛糸を設定してください";
       container.appendChild(note);
     }
   }

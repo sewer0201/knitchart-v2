@@ -93,15 +93,21 @@ window.KC = window.KC || {};
   function init() {
     KC.state.reset();
     initTabs();
-    initKnitToolbar();
     initToast();
+    // 他モジュールが初期描画で state を読む前に、保存済みデータがあれば復元しておく
+    const restored = KC.storage.init();
+    initKnitToolbar();
     KC.grid.init();
     KC.sheet.init();
     KC.yarnTab.init();
+    KC.presetSheet.init();
     KC.sizeTab.init();
     KC.exportTab.init();
     KC.howto.init();
+    // 各モジュールの初期化が終わってから、以後の変更を自動保存するようにする
+    KC.storage.bindAutoSave();
     activateTab("knit");
+    if (restored) KC.bus.emit("toast", "前回の編集内容を復元しました");
   }
 
   document.addEventListener("DOMContentLoaded", init);

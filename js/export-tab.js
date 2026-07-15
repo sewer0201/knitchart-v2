@@ -8,6 +8,8 @@ window.KC = window.KC || {};
 (function (KC) {
   "use strict";
 
+  const DEFAULT_PROJECT_NAME = "編み図";
+
   let nameInput;
 
   function projectName() {
@@ -24,12 +26,16 @@ window.KC = window.KC || {};
       KC.jsonIO.download(projectName());
       KC.bus.emit("toast", "プロジェクトを保存しました");
     });
+    document.getElementById("new-project-btn").addEventListener("click", onNewProject);
     document.getElementById("import-input").addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (!file) return;
       KC.jsonIO.importFromFile(
         file,
-        () => {
+        (name) => {
+          if (name && name.trim()) {
+            nameInput.value = name.trim();
+          }
           KC.bus.emit("dataReplaced");
           KC.bus.emit("rowsChanged");
           KC.bus.emit("toast", "プロジェクトを読み込みました");
@@ -40,6 +46,25 @@ window.KC = window.KC || {};
       );
       e.target.value = "";
     });
+  }
+
+  // 現在編集中の内容（自動保存分も含む）を破棄して、まっさらな新規プロジェクトを開始する。
+  function onNewProject() {
+    const ok = confirm(
+      "現在の編み図を破棄して、新規プロジェクトを開始します。\n保存していない変更は失われます。よろしいですか？"
+    );
+    if (!ok) return;
+
+    KC.selection.exit();
+    KC.state.reset();
+    nameInput.value = DEFAULT_PROJECT_NAME;
+
+    KC.bus.emit("dataReplaced");
+    KC.bus.emit("rowsChanged");
+    KC.bus.emit("sizeChanged");
+    // 自動保存にも即座に反映しておく（次回リロード時に元の内容へ戻らないように）
+    KC.storage.saveNow();
+    KC.bus.emit("toast", "新規プロジェクトを開始しました");
   }
 
   KC.exportTab = { init };
