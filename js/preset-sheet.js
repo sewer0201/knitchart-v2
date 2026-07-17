@@ -44,7 +44,7 @@ window.KC = window.KC || {};
       (e) => {
         startY = e.touches[0].clientY;
       },
-      { passive: true }
+      { passive: true },
     );
     handle.addEventListener(
       "touchmove",
@@ -53,7 +53,7 @@ window.KC = window.KC || {};
         const dy = e.touches[0].clientY - startY;
         if (dy > 0) sheetEl.style.transform = `translateY(${dy}px)`;
       },
-      { passive: true }
+      { passive: true },
     );
     handle.addEventListener("touchend", (e) => {
       const dy = (e.changedTouches[0].clientY || 0) - (startY || 0);
@@ -76,8 +76,9 @@ window.KC = window.KC || {};
 
   function render() {
     listEl.innerHTML = "";
-    const presets = KC.presets || [];
-    if (presets.length === 0) {
+    const groups = KC.presetGroups || [];
+    const totalItems = groups.reduce((n, g) => n + (g.items || []).length, 0);
+    if (totalItems === 0) {
       const note = document.createElement("p");
       note.className = "empty-note";
       note.textContent = "リストに毛糸が登録されていません。";
@@ -85,12 +86,20 @@ window.KC = window.KC || {};
       updateAddBtn();
       return;
     }
-    const grid = document.createElement("div");
-    grid.className = "preset-grid";
-    presets.forEach((preset) => {
-      grid.appendChild(renderPresetItem(preset));
+    groups.forEach((group) => {
+      if (!group.items || group.items.length === 0) return;
+      const title = document.createElement("p");
+      title.className = "preset-group-title";
+      title.textContent = group.name || "";
+      listEl.appendChild(title);
+
+      const grid = document.createElement("div");
+      grid.className = "preset-grid";
+      group.items.forEach((preset) => {
+        grid.appendChild(renderPresetItem(preset));
+      });
+      listEl.appendChild(grid);
     });
-    listEl.appendChild(grid);
     updateAddBtn();
   }
 
@@ -128,11 +137,17 @@ window.KC = window.KC || {};
     if (!addBtn) return;
     const n = selectedIds.size;
     addBtn.disabled = n === 0;
-    addBtn.textContent = n > 0 ? `選択した色を追加（${n}）` : "選択した色を追加";
+    addBtn.textContent =
+      n > 0 ? `選択した色を追加（${n}）` : "選択した色を追加";
+  }
+
+  function allPresetItems() {
+    const groups = KC.presetGroups || [];
+    return groups.reduce((acc, g) => acc.concat(g.items || []), []);
   }
 
   function addSelected() {
-    const presets = KC.presets || [];
+    const presets = allPresetItems();
     const chosen = presets.filter((p) => selectedIds.has(p.id));
     let added = 0;
     let skipped = 0;

@@ -866,11 +866,23 @@ input {
 }
 
 /* ---------------- 毛糸リストシート ---------------- */
+.preset-group-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink);
+  background-color: var(--bg);
+  margin: 16px 0 8px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+}
+.preset-group-title:first-child {
+  margin-top: 0;
+}
 .preset-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 26px;
 }
 .preset-swatch-item {
   background: none;
