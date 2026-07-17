@@ -121,7 +121,12 @@ window.KC = window.KC || {};
     /* ---- セル本体（ガターの右下。パン/ズームが効く） ---- */
     ctx.save();
     ctx.beginPath();
-    ctx.rect(gutterW, GUTTER_H, Math.max(0, vw - gutterW), Math.max(0, vh - GUTTER_H));
+    ctx.rect(
+      gutterW,
+      GUTTER_H,
+      Math.max(0, vw - gutterW),
+      Math.max(0, vh - GUTTER_H),
+    );
     ctx.clip();
     ctx.translate(gutterW + view.tx, GUTTER_H + view.ty);
     ctx.scale(view.scale, view.scale);
@@ -171,6 +176,44 @@ window.KC = window.KC || {};
         );
       }
     }
+
+    if (KC.rangeSelect && KC.rangeSelect.isActive()) {
+      KC.rangeSelect.getOverlayGeometry().forEach((r) => {
+        const dTop = Math.max(0, r.dTop);
+        const dBottom = Math.min(state.rows.length - 1, r.dBottom);
+        const cLeft = Math.max(0, r.cLeft);
+        const cRight = Math.min(state.cols - 1, r.cRight);
+        if (dTop > dBottom || cLeft > cRight) return;
+        const x = cLeft * BASE_CELL;
+        const y = dTop * BASE_CELL;
+        const w = (cRight - cLeft + 1) * BASE_CELL;
+        const h = (dBottom - dTop + 1) * BASE_CELL;
+        ctx.save();
+        if (r.kind === "paste-preview") {
+          ctx.strokeStyle = "#2B5B8C";
+          ctx.lineWidth = 2 / view.scale;
+          ctx.setLineDash([6 / view.scale, 4 / view.scale]);
+          ctx.strokeRect(
+            x + 1 / view.scale,
+            y + 1 / view.scale,
+            w - 2 / view.scale,
+            h - 2 / view.scale,
+          );
+        } else {
+          ctx.fillStyle = "rgba(43,91,140,0.16)";
+          ctx.fillRect(x, y, w, h);
+          ctx.strokeStyle = "#2B5B8C";
+          ctx.lineWidth = 2 / view.scale;
+          ctx.strokeRect(
+            x + 1 / view.scale,
+            y + 1 / view.scale,
+            w - 2 / view.scale,
+            h - 2 / view.scale,
+          );
+        }
+        ctx.restore();
+      });
+    }
     ctx.restore();
 
     const showNumbers = cellScreen >= 9;
@@ -197,7 +240,8 @@ window.KC = window.KC || {};
         const colNumber = c + 1;
         ctx.fillStyle = numberColor(colNumber);
         ctx.font = numberFont(colNumber, 18, "'Zen Maru Gothic', sans-serif");
-        const screenX = gutterW + view.tx + c * BASE_CELL * view.scale + cellScreen / 2;
+        const screenX =
+          gutterW + view.tx + c * BASE_CELL * view.scale + cellScreen / 2;
         ctx.fillText(String(colNumber), screenX, GUTTER_H / 2);
       }
       ctx.restore();
@@ -216,7 +260,8 @@ window.KC = window.KC || {};
     ctx.stroke();
 
     rowMeta.forEach(({ row, rowNumber, displayIndex, isSelected }) => {
-      const screenY = GUTTER_H + view.ty + displayIndex * BASE_CELL * view.scale;
+      const screenY =
+        GUTTER_H + view.ty + displayIndex * BASE_CELL * view.scale;
       const rowH = BASE_CELL * view.scale;
       const midY = screenY + rowH / 2;
 
@@ -245,7 +290,7 @@ window.KC = window.KC || {};
         ctx.font = numberFont(rowNumber, 18, "'Zen Maru Gothic', sans-serif");
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
-        ctx.fillText(String(rowNumber), gutterW - 8, midY,);
+        ctx.fillText(String(rowNumber), gutterW - 8, midY);
       }
     });
     ctx.restore();
@@ -278,7 +323,9 @@ window.KC = window.KC || {};
     }
 
     const adjY = sy - GUTTER_H;
-    const displayIndex = Math.floor((adjY - view.ty) / (BASE_CELL * view.scale));
+    const displayIndex = Math.floor(
+      (adjY - view.ty) / (BASE_CELL * view.scale),
+    );
     const rowNumber = state.rows.length - displayIndex;
     const row = state.rows[rowNumber - 1];
     if (!row) return { row: null };
@@ -312,17 +359,28 @@ window.KC = window.KC || {};
   }
 
   function onPointerDown(e) {
+    // 古いWebKit（iPadOS 15までしか対応しない機種など）では、マウスの
+    // クリック＆ドラッグに対してブラウザ標準の「コンテンツ選択ドラッグ」が
+    // 先に発火し、canvasが選択ハイライト色（水色）で覆われた上でJS側の
+    // ジェスチャー処理が乗っ取られてしまうことがある。touch-action /
+    // user-select のCSSだけでは環境によって防ぎきれない場合があるため、
+    // ここで明示的に preventDefault して確実に止める。
+    e.preventDefault();
     canvas.setPointerCapture(e.pointerId);
     const pos = getLocalPos(e);
     pointers.set(e.pointerId, pos);
 
     if (pointers.size === 1) {
-      downInfo = { start: pos, moved: false, uid: e.pointerId };
-      panStart = { x: pos.x, y: pos.y, tx0: view.tx, ty0: view.ty };
       gesture = "maybe-pan";
+      downInfo = { start: pos, moved: false };
+      panStart = { x: pos.x, y: pos.y, tx0: view.tx, ty0: view.ty };
       clearLongPressTimer();
       const hit = hitTest(pos.x, pos.y);
-      if (hit.row) {
+      if (
+        hit.row &&
+        !KC.selection.isActive() &&
+        !(KC.rangeSelect && KC.rangeSelect.isActive())
+      ) {
         longPressTimer = setTimeout(() => {
           if (gesture === "maybe-pan" && !downInfo.moved) {
             triggerLongPress(hit.row);
@@ -428,7 +486,11 @@ window.KC = window.KC || {};
   }
 
   function triggerLongPress(row) {
-    if (KC.selection.isActive()) return;
+    if (
+      KC.selection.isActive() ||
+      (KC.rangeSelect && KC.rangeSelect.isActive())
+    )
+      return;
     KC.selection.enter();
     KC.selection.toggle(row.uid);
     if (navigator.vibrate) navigator.vibrate(12);
@@ -438,6 +500,13 @@ window.KC = window.KC || {};
   function handleTap(pos) {
     const hit = hitTest(pos.x, pos.y);
     if (!hit.row) return;
+
+    if (KC.rangeSelect && KC.rangeSelect.isActive()) {
+      if (!hit.inGutter && hit.valid) {
+        KC.rangeSelect.onCellTap(hit.row, hit.col);
+      }
+      return;
+    }
 
     if (KC.selection.isActive()) {
       KC.selection.toggle(hit.row.uid);
@@ -492,6 +561,7 @@ window.KC = window.KC || {};
 
     KC.bus.on("rowsChanged", () => draw());
     KC.bus.on("selectionChanged", () => draw());
+    KC.bus.on("rangeSelectionChanged", () => draw());
     KC.bus.on("sizeChanged", () => resetView());
     KC.bus.on("dataReplaced", () => resetView());
 

@@ -199,8 +199,8 @@ input {
   background: var(--danger);
   color: #fff;
 }
-
-#knit-toolbar-bulk {
+#knit-toolbar-bulk,
+#knit-toolbar-range {
   flex-wrap: wrap;
   row-gap: 8px;
 }
@@ -221,7 +221,8 @@ input {
   gap: 8px;
   flex-wrap: wrap;
 }
-#bulk-done-btn {
+#bulk-done-btn,
+#range-done-btn {
   position: absolute;
   top: 10px;
   right: 10px;

@@ -39,33 +39,80 @@ window.KC = window.KC || {};
 
   /* ---------------- 「編む」画面 上部バー ---------------- */
   function initKnitToolbar() {
-    q("enter-selection-btn").addEventListener("click", () => KC.selection.enter());
+    q("enter-selection-btn").addEventListener("click", () =>
+      KC.selection.enter(),
+    );
+    q("enter-range-select-btn").addEventListener("click", () =>
+      KC.rangeSelect.enter(),
+    );
     q("zoom-reset-btn").addEventListener("click", () => KC.grid.resetView());
 
-    q("bulk-copy-btn").addEventListener("click", () => KC.selection.copySelected());
+    q("bulk-copy-btn").addEventListener("click", () =>
+      KC.selection.copySelected(),
+    );
     q("bulk-release-repeat-btn").addEventListener("click", () => {
       KC.selection.releaseRepeatForSelected();
       KC.bus.emit("toast", "選択した行の繰り返しを解除しました");
     });
-    q("bulk-paste-btn").addEventListener("click", () => KC.selection.pasteFromSelected("all"));
-    q("bulk-paste-flip-btn").addEventListener("click", () => KC.selection.pasteFromSelected("all", true));
-    q("bulk-paste-color-btn").addEventListener("click", () => KC.selection.pasteFromSelected("colors"));
-    q("bulk-paste-pattern-btn").addEventListener("click", () => KC.selection.pasteFromSelected("pattern"));
-    q("bulk-clear-btn").addEventListener("click", () => KC.selection.clearChecks());
-    q("bulk-undo-btn").addEventListener("click", () => KC.selection.undoLastPaste());
+    q("bulk-paste-btn").addEventListener("click", () =>
+      KC.selection.pasteFromSelected("all"),
+    );
+    q("bulk-paste-flip-btn").addEventListener("click", () =>
+      KC.selection.pasteFromSelected("all", true),
+    );
+    q("bulk-paste-color-btn").addEventListener("click", () =>
+      KC.selection.pasteFromSelected("colors"),
+    );
+    q("bulk-paste-pattern-btn").addEventListener("click", () =>
+      KC.selection.pasteFromSelected("pattern"),
+    );
+    q("bulk-clear-btn").addEventListener("click", () =>
+      KC.selection.clearChecks(),
+    );
+    q("bulk-undo-btn").addEventListener("click", () =>
+      KC.selection.undoLastPaste(),
+    );
     q("bulk-done-btn").addEventListener("click", () => KC.selection.exit());
 
+    q("range-copy-btn").addEventListener("click", () =>
+      KC.rangeSelect.copySelected(),
+    );
+    q("range-paste-btn").addEventListener("click", () =>
+      KC.rangeSelect.pasteAtAnchor(),
+    );
+    q("range-paste-flip-v-btn").addEventListener("click", () =>
+      KC.rangeSelect.pasteAtAnchor({ flipV: true }),
+    );
+    q("range-paste-flip-h-btn").addEventListener("click", () =>
+      KC.rangeSelect.pasteAtAnchor({ flipH: true }),
+    );
+    q("range-undo-btn").addEventListener("click", () =>
+      KC.rangeSelect.undoLastPaste(),
+    );
+    q("range-clear-btn").addEventListener("click", () =>
+      KC.rangeSelect.clearSelection(),
+    );
+    q("range-done-btn").addEventListener("click", () => KC.rangeSelect.exit());
+
     KC.bus.on("selectionChanged", updateKnitToolbar);
+    KC.bus.on("rangeSelectionChanged", updateKnitToolbar);
     updateKnitToolbar();
   }
 
   function updateKnitToolbar() {
-    const active = KC.selection.isActive();
-    q("knit-toolbar-normal").classList.toggle("is-hidden", active);
-    q("knit-toolbar-bulk").classList.toggle("is-hidden", !active);
-    document.getElementById("tabbar").classList.toggle("is-hidden", active);
+    const bulkActive = KC.selection.isActive();
+    const rangeActive = KC.rangeSelect.isActive();
+    q("knit-toolbar-normal").classList.toggle(
+      "is-hidden",
+      bulkActive || rangeActive,
+    );
+    q("knit-toolbar-bulk").classList.toggle("is-hidden", !bulkActive);
+    q("knit-toolbar-range").classList.toggle("is-hidden", !rangeActive);
+    document
+      .getElementById("tabbar")
+      .classList.toggle("is-hidden", bulkActive || rangeActive);
 
-    if (active) {
+    if (bulkActive) {
       const n = KC.selection.count();
       const clip = KC.selection.clipboardCount();
       let status = `選択中: ${n}行`;
@@ -79,6 +126,16 @@ window.KC = window.KC || {};
       q("bulk-paste-color-btn").disabled = pasteDisabled;
       q("bulk-paste-pattern-btn").disabled = pasteDisabled;
       q("bulk-undo-btn").disabled = !KC.selection.canUndo();
+    }
+
+    if (rangeActive) {
+      q("range-status").textContent = KC.rangeSelect.statusText();
+      q("range-copy-btn").disabled = !KC.rangeSelect.canCopy();
+      const pasteDisabled = !KC.rangeSelect.canPaste();
+      q("range-paste-btn").disabled = pasteDisabled;
+      q("range-paste-flip-v-btn").disabled = pasteDisabled;
+      q("range-paste-flip-h-btn").disabled = pasteDisabled;
+      q("range-undo-btn").disabled = !KC.rangeSelect.canUndo();
     }
   }
 

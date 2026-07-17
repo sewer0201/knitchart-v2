@@ -33,6 +33,9 @@
             <button id="enter-selection-btn" type="button" class="pill-btn subtle" title="複数行操作">
               複数行操作
             </button>
+            <button id="enter-range-select-btn" type="button" class="pill-btn subtle" title="範囲選択">
+              範囲選択
+            </button>
           </div>
         </div>
 
@@ -55,6 +58,25 @@
                 title="色だけ貼り付け">色だけ貼り付け</button>
               <button id="bulk-paste-pattern-btn" type="button" class="pill-btn subtle" disabled
                 title="柄だけ貼り付け">柄だけ貼り付け</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="knit-toolbar-range" class="knit-toolbar is-hidden">
+          <span id="range-status" class="bulk-status">範囲の左上・右下となる2つのマスをタップしてください</span>
+          <div class="bulk-actions">
+            <div class="bulk-actions-row">
+              <button id="range-copy-btn" type="button" class="pill-btn subtle" disabled>選択した範囲をコピー</button>
+              <button id="range-clear-btn" type="button" class="pill-btn subtle">選択を解除</button>
+              <button id="range-undo-btn" type="button" class="pill-btn subtle" disabled>最後の貼り付けを取り消す</button>
+              <button id="range-done-btn" type="button"><i class="ti ti-x" aria-hidden="true"></i></button>
+            </div>
+            <div class="bulk-actions-row">
+              <button id="range-paste-btn" type="button" class="pill-btn subtle" disabled title="貼り付け">貼り付け</button>
+              <button id="range-paste-flip-v-btn" type="button" class="pill-btn subtle" disabled
+                title="上下反転して貼り付け">上下反転して貼り付け</button>
+              <button id="range-paste-flip-h-btn" type="button" class="pill-btn subtle" disabled
+                title="左右反転して貼り付け">左右反転して貼り付け</button>
             </div>
           </div>
         </div>
@@ -177,11 +199,14 @@
         <p class="sheet-block-label">くり返し目数</p>
         <div class="repeat-row">
           <div class="repeat-stepper">
-            <button id="row-repeat-minus" type="button" aria-label="くり返し目数を減らす"><i class="ti ti-minus" aria-hidden="true"></i></button>
+            <button id="row-repeat-minus" type="button" aria-label="くり返し目数を減らす"><i class="ti ti-minus"
+                aria-hidden="true"></i></button>
             <span id="row-repeat-val">12</span>
-            <button id="row-repeat-plus" type="button" aria-label="くり返し目数を増やす"><i class="ti ti-plus" aria-hidden="true"></i></button>
+            <button id="row-repeat-plus" type="button" aria-label="くり返し目数を増やす"><i class="ti ti-plus"
+                aria-hidden="true"></i></button>
           </div>
-          <button id="row-release-repeat-btn" type="button" class="release-repeat-btn" title="今の柄をキープしたまま、この行のくり返しをやめて1目ずつ編集できるようにします">
+          <button id="row-release-repeat-btn" type="button" class="release-repeat-btn"
+            title="今の柄をキープしたまま、この行のくり返しをやめて1目ずつ編集できるようにします">
             <i class="ti ti-repeat-off" aria-hidden="true"></i>この行の繰り返しを解除する
           </button>
         </div>
@@ -241,6 +266,7 @@
   <script src="js/state.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/selection.js"></script>
+  <script src="js/range-select.js"></script>
   <script src="js/canvas-grid.js"></script>
   <script src="js/sheet.js"></script>
   <script src="js/yarn-tab.js"></script>

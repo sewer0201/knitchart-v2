@@ -10,8 +10,10 @@ window.KC = window.KC || {};
 
   const DEFAULT_BG_COLOR = "#F5F5F5"; // 地の色が未設定のときの表示色
   const DEFAULT_FG_COLOR = "#9B9B9B"; // 柄の色が未設定のときの表示色
-  const REPEAT_MIN = 2, REPEAT_MAX = 20;
-  const SIZE_MIN = 1, SIZE_MAX = 300;
+  const REPEAT_MIN = 2,
+    REPEAT_MAX = 20;
+  const SIZE_MIN = 1,
+    SIZE_MAX = 300;
 
   let uidCounter = 1;
   function newUid(prefix) {
@@ -65,7 +67,9 @@ window.KC = window.KC || {};
   function sortedYarns() {
     return state.yarns
       .slice()
-      .sort((a, b) => a.id.localeCompare(b.id, "ja", { numeric: true, sensitivity: "base" }));
+      .sort((a, b) =>
+        a.id.localeCompare(b.id, "ja", { numeric: true, sensitivity: "base" }),
+      );
   }
   function addYarn(id, color) {
     id = (id || "").trim();
@@ -107,10 +111,15 @@ window.KC = window.KC || {};
     const idx = normalizeOffset(colIndex + row.offset, row.repeat);
     return row.stitches[idx];
   }
+  function setStitchAt(row, colIndex, value) {
+    const idx = normalizeOffset(colIndex + row.offset, row.repeat);
+    row.stitches[idx] = !!value;
+  }
   function setRowRepeat(row, n) {
     n = clamp(parseInt(n, 10) || row.repeat, REPEAT_MIN, REPEAT_MAX);
     const newStitches = new Array(n).fill(false);
-    for (let k = 0; k < Math.min(n, row.stitches.length); k++) newStitches[k] = row.stitches[k];
+    for (let k = 0; k < Math.min(n, row.stitches.length); k++)
+      newStitches[k] = row.stitches[k];
     row.repeat = n;
     row.stitches = newStitches;
     row.offset = normalizeOffset(row.offset, n);
@@ -134,8 +143,15 @@ window.KC = window.KC || {};
   }
   // direction: "top"（大きい番号側＝配列の末尾）／"bottom"（小さい番号側＝配列の先頭）
   function addRow(direction) {
-    const refRow = direction === "bottom" ? state.rows[0] : state.rows[state.rows.length - 1];
-    const row = makeRow(refRow ? refRow.repeat : 12, refRow ? refRow.bg : null, refRow ? refRow.fg : null);
+    const refRow =
+      direction === "bottom"
+        ? state.rows[0]
+        : state.rows[state.rows.length - 1];
+    const row = makeRow(
+      refRow ? refRow.repeat : 12,
+      refRow ? refRow.bg : null,
+      refRow ? refRow.fg : null,
+    );
     if (direction === "bottom") state.rows.unshift(row);
     else state.rows.push(row);
     return row;
@@ -170,7 +186,13 @@ window.KC = window.KC || {};
 
   /* ---------------- 行のコピー内容ヘルパ ---------------- */
   function snapshotRowContent(row) {
-    return { repeat: row.repeat, stitches: row.stitches.slice(), offset: row.offset, bg: row.bg, fg: row.fg };
+    return {
+      repeat: row.repeat,
+      stitches: row.stitches.slice(),
+      offset: row.offset,
+      bg: row.bg,
+      fg: row.fg,
+    };
   }
   function snapshotRowFull(row) {
     return Object.assign({ uid: row.uid }, snapshotRowContent(row));
@@ -204,7 +226,12 @@ window.KC = window.KC || {};
   }
 
   function loadFromData(data) {
-    if (!data || !Array.isArray(data.yarns) || !Array.isArray(data.rows) || typeof data.cols !== "number") {
+    if (
+      !data ||
+      !Array.isArray(data.yarns) ||
+      !Array.isArray(data.rows) ||
+      typeof data.cols !== "number"
+    ) {
       throw new Error("invalid shape");
     }
     const yarnUidMap = {};
@@ -219,7 +246,9 @@ window.KC = window.KC || {};
     const maxRepeat = Math.max(REPEAT_MAX, targetCols);
     const newRows = data.rows.map((r) => {
       const repeat = clamp(r.repeat || 12, REPEAT_MIN, maxRepeat);
-      let stitches = Array.isArray(r.stitches) ? r.stitches.slice(0, repeat) : [];
+      let stitches = Array.isArray(r.stitches)
+        ? r.stitches.slice(0, repeat)
+        : [];
       while (stitches.length < repeat) stitches.push(false);
       const rawOffset = typeof r.offset === "number" ? r.offset : 0;
       const offset = normalizeOffset(rawOffset, repeat);
@@ -265,6 +294,7 @@ window.KC = window.KC || {};
     findRow,
     toggleStitch,
     stitchAt,
+    setStitchAt,
     setRowRepeat,
     isRepeatReleased,
     releaseRepeat,

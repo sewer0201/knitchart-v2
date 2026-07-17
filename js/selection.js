@@ -18,6 +18,7 @@ window.KC = window.KC || {};
     return active;
   }
   function enter() {
+    if (KC.rangeSelect && KC.rangeSelect.isActive()) KC.rangeSelect.exit();
     active = true;
     selectedUids.clear();
     KC.bus.emit("selectionChanged");
@@ -54,7 +55,9 @@ window.KC = window.KC || {};
     const state = S.get();
     cleanupMissing();
     // 画面表示順（行番号が大きい方が上）でコピーする
-    const selectedRows = state.rows.filter((r) => selectedUids.has(r.uid)).reverse();
+    const selectedRows = state.rows
+      .filter((r) => selectedUids.has(r.uid))
+      .reverse();
     if (selectedRows.length === 0) return;
     multiClipboard = {
       count: selectedRows.length,
@@ -82,11 +85,15 @@ window.KC = window.KC || {};
     const state = S.get();
     cleanupMissing();
     // 画面表示順（上から下）で選択行を並べる
-    const selectedRows = state.rows.filter((r) => selectedUids.has(r.uid)).reverse();
+    const selectedRows = state.rows
+      .filter((r) => selectedUids.has(r.uid))
+      .reverse();
     if (selectedRows.length === 0) return;
     saveUndoSnapshot();
 
-    const clipRows = flip ? multiClipboard.rows.slice().reverse() : multiClipboard.rows;
+    const clipRows = flip
+      ? multiClipboard.rows.slice().reverse()
+      : multiClipboard.rows;
 
     if (selectedRows.length === 1) {
       // 選択が1行のときは、その行を起点として画面の下方向へ
