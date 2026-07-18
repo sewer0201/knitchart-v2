@@ -24,17 +24,17 @@
       <section id="view-knit" class="view is-active">
         <div id="knit-toolbar-normal" class="knit-toolbar">
           <button id="howto-btn" type="button" class="pill-btn subtle" title="使い方を見る">
-            使い方
+            <i class="ti ti-question-mark"></i>使い方
           </button>
           <div>
             <button id="zoom-reset-btn" type="button" class="pill-btn subtle" title="全体を見る" aria-label="全体を見る">
-              全体を見る
+              <i class="ti ti-scan-eye"></i>全体を見る
             </button>
             <button id="enter-selection-btn" type="button" class="pill-btn subtle" title="複数行操作">
-              複数行操作
+              <i class="ti ti-circle-check"></i>複数行選択
             </button>
             <button id="enter-range-select-btn" type="button" class="pill-btn subtle" title="範囲選択">
-              範囲選択
+              <i class="ti ti-maximize"></i>範囲選択
             </button>
           </div>
         </div>
@@ -43,41 +43,66 @@
           <span id="bulk-status" class="bulk-status">選択中: 0行</span>
           <div class="bulk-actions">
             <div class="bulk-actions-row">
-              <button id="bulk-range-btn" type="button" class="pill-btn subtle">範囲で選択</button>
-              <button id="bulk-copy-btn" type="button" class="pill-btn subtle" disabled>選択した行をコピー</button>
+              <button id="bulk-range-btn" type="button" class="pill-btn subtle">
+                <i class="ti ti-arrows-vertical"></i>範囲で選択
+              </button>
+              <button id="bulk-copy-btn" type="button" class="pill-btn subtle" disabled>
+                <i class="ti ti-copy"></i>選択した行をコピー
+              </button>
               <button id="bulk-release-repeat-btn" type="button" class="pill-btn subtle" disabled
-                title="選択した行の柄をキープしたまま、くり返しを解除します">選択した行の繰り返しを解除する</button>
-              <button id="bulk-clear-btn" type="button" class="pill-btn subtle">選択を解除</button>
-              <button id="bulk-undo-btn" type="button" class="pill-btn subtle" disabled>最後の貼り付けを取り消す</button>
+                title="選択した行の柄をキープしたまま、くり返しを解除します">
+                <i class="ti ti-repeat-off"></i>選択した行の繰り返しを解除する
+              </button>
+              <button id="bulk-clear-btn" type="button" class="pill-btn subtle">
+                <i class="ti ti-circle-dashed"></i>選択を解除
+              </button>
+              <button id="bulk-undo-btn" type="button" class="pill-btn subtle" disabled>
+                <i class="ti ti-arrow-back-up"></i>最後の貼り付けを取り消す
+              </button>
               <button id="bulk-done-btn" type="button"><i class="ti ti-x" aria-hidden="true"></i></button>
             </div>
             <div class="bulk-actions-row">
-              <button id="bulk-paste-btn" type="button" class="pill-btn subtle" disabled title="貼り付け">貼り付け</button>
-              <button id="bulk-paste-flip-btn" type="button" class="pill-btn subtle" disabled
-                title="上下反転して貼り付け">上下反転して貼り付け</button>
-              <button id="bulk-paste-color-btn" type="button" class="pill-btn subtle" disabled
-                title="色だけ貼り付け">色だけ貼り付け</button>
-              <button id="bulk-paste-pattern-btn" type="button" class="pill-btn subtle" disabled
-                title="柄だけ貼り付け">柄だけ貼り付け</button>
+              <button id="bulk-paste-btn" type="button" class="pill-btn subtle" disabled title="貼り付け">
+                <i class="ti ti-rubber-stamp"></i>貼り付け
+              </button>
+              <button id="bulk-paste-flip-btn" type="button" class="pill-btn subtle" disabled title="上下反転して貼り付け">
+                <i class="ti ti-flip-horizontal"></i>上下反転して貼り付け
+              </button>
+              <button id="bulk-paste-color-btn" type="button" class="pill-btn subtle" disabled title="色だけ貼り付け">
+                <i class="ti ti-palette"></i>色だけ貼り付け
+              </button>
+              <button id="bulk-paste-pattern-btn" type="button" class="pill-btn subtle" disabled title="柄だけ貼り付け">
+                <i class="ti ti-grain"></i>柄だけ貼り付け
+              </button>
             </div>
           </div>
         </div>
 
         <div id="knit-toolbar-range" class="knit-toolbar is-hidden">
-          <span id="range-status" class="bulk-status">範囲の左上・右下となる2つのマスをタップしてください</span>
+          <span id="range-status" class="bulk-status">範囲の左上・右下(右上・左下)となる2つのマスをタップしてください</span>
           <div class="bulk-actions">
             <div class="bulk-actions-row">
-              <button id="range-copy-btn" type="button" class="pill-btn subtle" disabled>選択した範囲をコピー</button>
-              <button id="range-clear-btn" type="button" class="pill-btn subtle">選択を解除</button>
-              <button id="range-undo-btn" type="button" class="pill-btn subtle" disabled>最後の貼り付けを取り消す</button>
+              <button id="range-copy-btn" type="button" class="pill-btn subtle" disabled>
+                <i class="ti ti-copy"></i>選択した範囲をコピー
+              </button>
+              <button id="range-clear-btn" type="button" class="pill-btn subtle">
+                <i class="ti ti-maximize-off"></i>選択を解除
+              </button>
+              <button id="range-undo-btn" type="button" class="pill-btn subtle" disabled>
+                <i class="ti ti-arrow-back-up"></i>最後の貼り付けを取り消す
+              </button>
               <button id="range-done-btn" type="button"><i class="ti ti-x" aria-hidden="true"></i></button>
             </div>
             <div class="bulk-actions-row">
-              <button id="range-paste-btn" type="button" class="pill-btn subtle" disabled title="貼り付け">貼り付け</button>
-              <button id="range-paste-flip-v-btn" type="button" class="pill-btn subtle" disabled
-                title="上下反転して貼り付け">上下反転して貼り付け</button>
-              <button id="range-paste-flip-h-btn" type="button" class="pill-btn subtle" disabled
-                title="左右反転して貼り付け">左右反転して貼り付け</button>
+              <button id="range-paste-btn" type="button" class="pill-btn subtle" disabled title="貼り付け">
+                <i class="ti ti-rubber-stamp"></i>貼り付け
+              </button>
+              <button id="range-paste-flip-v-btn" type="button" class="pill-btn subtle" disabled title="上下反転して貼り付け">
+                <i class="ti ti-flip-horizontal"></i>上下反転して貼り付け
+              </button>
+              <button id="range-paste-flip-h-btn" type="button" class="pill-btn subtle" disabled title="左右反転して貼り付け">
+                <i class="ti ti-flip-vertical"></i>左右反転して貼り付け
+              </button>
             </div>
           </div>
         </div>
@@ -132,6 +157,7 @@
             <button id="apply-size-btn" type="button" class="size-apply-btn">サイズを反映</button>
             <div class="size-quick-actions">
               <button id="add-row-btn" type="button"><i class="ti ti-plus" aria-hidden="true"></i> 行を1つ追加</button>
+              <button id="remove-row-btn" type="button"><i class="ti ti-minus" aria-hidden="true"></i> 行を1つ削除</button>
               <button id="add-col-btn" type="button"><i class="ti ti-plus" aria-hidden="true"></i> 列を1つ追加</button>
               <button id="remove-col-btn" type="button"><i class="ti ti-minus" aria-hidden="true"></i> 列を1つ削除</button>
             </div>
@@ -158,7 +184,7 @@
             </div>
           </div>
           <div class="panel">
-            <h2>書き出し</h2>
+            <h2>保存</h2>
             <div class="export-actions">
               <button id="export-png-btn" type="button">画像として保存（PNG / A4縦）</button>
               <button id="export-json-btn" type="button">プロジェクトを保存（.json）</button>
@@ -244,6 +270,11 @@
 
     <div id="toast" class="toast"></div>
 
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="loading-spinner" aria-hidden="true"></div>
+      <p id="loading-text" class="loading-text">読み込み中…</p>
+    </div>
+
     <!-- ============ 使い方モーダル ============ -->
     <div id="howto-backdrop" class="howto-backdrop"></div>
     <div id="howto-modal" class="howto-modal" role="dialog" aria-modal="true" aria-labelledby="howto-title">
@@ -264,6 +295,7 @@
   </div>
 
   <script src="js/bus.js"></script>
+  <script src="js/loading.js"></script>
   <script src="js/state.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/selection.js"></script>

@@ -66,7 +66,7 @@ window.KC = window.KC || {};
     if (yarns.length === 0) {
       const li = document.createElement("li");
       li.className = "empty-note";
-      li.textContent = "毛糸が登録されていません。";
+      li.textContent = "毛糸が設定されていません。";
       listEl.appendChild(li);
       return;
     }

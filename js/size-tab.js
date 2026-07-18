@@ -22,6 +22,10 @@ window.KC = window.KC || {};
       S.addRow(rowDirection);
       afterChange();
     });
+    document.getElementById("remove-row-btn").addEventListener("click", () => {
+      S.removeRowFromEnd(rowDirection);
+      afterChange();
+    });
     document.getElementById("add-col-btn").addEventListener("click", () => {
       S.addColumn();
       afterChange();

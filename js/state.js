@@ -11,7 +11,8 @@ window.KC = window.KC || {};
   const DEFAULT_BG_COLOR = "#F5F5F5"; // 地の色が未設定のときの表示色
   const DEFAULT_FG_COLOR = "#9B9B9B"; // 柄の色が未設定のときの表示色
   const REPEAT_MIN = 2;
-  const SIZE_MIN = 1, SIZE_MAX = 300;
+  const SIZE_MIN = 1,
+    SIZE_MAX = 300;
 
   let uidCounter = 1;
   function newUid(prefix) {
@@ -166,6 +167,14 @@ window.KC = window.KC || {};
     state.rows.splice(idx, 1);
     return true;
   }
+  // direction: "top"（大きい番号側＝配列の末尾）／"bottom"（小さい番号側＝配列の先頭）
+  // 「行を1つ削除」クイックボタン用（addRowと対になる、方向指定での末尾1行削除）
+  function removeRowFromEnd(direction) {
+    if (state.rows.length <= 1) return false;
+    if (direction === "bottom") state.rows.shift();
+    else state.rows.pop();
+    return true;
+  }
   // direction: "top"（大きい番号側から増減）／"bottom"（小さい番号側から増減）
   function applySize(targetRows, targetCols, direction) {
     direction = direction === "bottom" ? "bottom" : "top";
@@ -303,6 +312,7 @@ window.KC = window.KC || {};
     addRowAtEnd,
     addRow,
     removeRow,
+    removeRowFromEnd,
     applySize,
     addColumn,
     removeColumn,

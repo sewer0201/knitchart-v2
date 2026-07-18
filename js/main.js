@@ -171,6 +171,7 @@ window.KC = window.KC || {};
     KC.state.reset();
     initTabs();
     initToast();
+    KC.loading.init();
     // 他モジュールが初期描画で state を読む前に、保存済みデータがあれば復元しておく
     const restored = KC.storage.init();
     initKnitToolbar();

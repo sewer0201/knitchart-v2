@@ -174,7 +174,7 @@ window.KC = window.KC || {};
     if (corner1 && corner2)
       return "範囲を選択済み／「選択した範囲をコピー」を押してください";
     if (corner1) return "もう1点タップして範囲（右下）を選択";
-    return "範囲の左上・右下となる2つのマスをタップしてください";
+    return "範囲の左上・右下(右上・左下)となる2つのマスをタップしてください";
   }
 
   function getOverlayGeometry() {
