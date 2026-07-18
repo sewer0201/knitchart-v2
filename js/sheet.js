@@ -21,7 +21,7 @@ window.KC = window.KC || {};
     els.sheet = q("row-sheet");
     els.title = q("row-sheet-title");
     els.closeBtn = q("row-sheet-close");
-    els.repeatVal = q("row-repeat-val");
+    els.repeatInput = q("row-repeat-input");
     els.repeatMinus = q("row-repeat-minus");
     els.repeatPlus = q("row-repeat-plus");
     els.releaseRepeatBtn = q("row-release-repeat-btn");
@@ -33,6 +33,13 @@ window.KC = window.KC || {};
     els.closeBtn.addEventListener("click", close);
     els.repeatMinus.addEventListener("click", () => changeRepeat(-1));
     els.repeatPlus.addEventListener("click", () => changeRepeat(1));
+    els.repeatInput.addEventListener("change", onRepeatInputCommit);
+    els.repeatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        els.repeatInput.blur();
+      }
+    });
     els.releaseRepeatBtn.addEventListener("click", onReleaseRepeat);
     els.deleteBtn.addEventListener("click", onDelete);
 
@@ -52,7 +59,7 @@ window.KC = window.KC || {};
       (e) => {
         startY = e.touches[0].clientY;
       },
-      { passive: true }
+      { passive: true },
     );
     handle.addEventListener(
       "touchmove",
@@ -61,7 +68,7 @@ window.KC = window.KC || {};
         const dy = e.touches[0].clientY - startY;
         if (dy > 0) sheetEl.style.transform = `translateY(${dy}px)`;
       },
-      { passive: true }
+      { passive: true },
     );
     handle.addEventListener("touchend", (e) => {
       const dy = (e.changedTouches[0].clientY || 0) - (startY || 0);
@@ -96,9 +103,11 @@ window.KC = window.KC || {};
     const state = S.get();
     const rowNumber = S.rowIndex(row.uid) + 1;
     els.title.textContent = `${rowNumber}段目を編集`;
-    els.repeatVal.textContent = row.repeat;
+    els.repeatInput.value = row.repeat;
+    els.repeatInput.min = S.REPEAT_MIN;
+    els.repeatInput.max = S.repeatMax();
     els.repeatMinus.disabled = row.repeat <= S.REPEAT_MIN;
-    els.repeatPlus.disabled = row.repeat >= S.REPEAT_MAX;
+    els.repeatPlus.disabled = row.repeat >= S.repeatMax();
     els.releaseRepeatBtn.disabled = S.isRepeatReleased(row);
 
     renderSwatchGrid(els.bgSwatches, row.bg, "bg", row);
@@ -113,10 +122,12 @@ window.KC = window.KC || {};
 
     const noneBtn = document.createElement("button");
     noneBtn.type = "button";
-    noneBtn.className = "swatch-btn swatch-none" + (!selectedUid ? " is-selected" : "");
+    noneBtn.className =
+      "swatch-btn swatch-none" + (!selectedUid ? " is-selected" : "");
     noneBtn.textContent = "未設定";
     noneBtn.title = "未設定（既定色）";
-    noneBtn.style.background = role === "fg" ? S.DEFAULT_FG_COLOR : S.DEFAULT_BG_COLOR;
+    noneBtn.style.background =
+      role === "fg" ? S.DEFAULT_FG_COLOR : S.DEFAULT_BG_COLOR;
     noneBtn.addEventListener("click", () => {
       row[role] = null;
       KC.bus.emit("rowsChanged");
@@ -126,7 +137,8 @@ window.KC = window.KC || {};
     S.sortedYarns().forEach((y) => {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "swatch-btn" + (selectedUid === y.uid ? " is-selected" : "");
+      btn.className =
+        "swatch-btn" + (selectedUid === y.uid ? " is-selected" : "");
       btn.style.background = y.color;
       btn.textContent = y.id;
       btn.title = y.id;
@@ -149,6 +161,14 @@ window.KC = window.KC || {};
     const row = currentRow();
     if (!row) return;
     S.setRowRepeat(row, row.repeat + delta);
+    KC.bus.emit("rowsChanged");
+  }
+
+  function onRepeatInputCommit() {
+    const row = currentRow();
+    if (!row) return;
+    const n = parseInt(els.repeatInput.value, 10);
+    S.setRowRepeat(row, isNaN(n) ? row.repeat : n);
     KC.bus.emit("rowsChanged");
   }
 

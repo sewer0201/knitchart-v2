@@ -138,6 +138,10 @@ window.KC = window.KC || {};
       if (!row) continue;
       const y = displayIndex * BASE_CELL;
       const isSelected = selection.isActive() && selection.isSelected(row.uid);
+      const isRangeAnchor =
+        selection.isActive() &&
+        selection.isRangePicking() &&
+        selection.getRangeAnchorUid() === row.uid;
       rowMeta.push({ row, rowNumber, displayIndex, isSelected });
 
       for (let c = colStart; c <= colEnd; c++) {
@@ -174,6 +178,19 @@ window.KC = window.KC || {};
           state.cols * BASE_CELL - 2 / view.scale,
           BASE_CELL - 2 / view.scale,
         );
+      }
+
+      if (isRangeAnchor) {
+        ctx.strokeStyle = "#2B5B8C";
+        ctx.lineWidth = 2 / view.scale;
+        ctx.setLineDash([6 / view.scale, 4 / view.scale]);
+        ctx.strokeRect(
+          1 / view.scale,
+          y + 1 / view.scale,
+          state.cols * BASE_CELL - 2 / view.scale,
+          BASE_CELL - 2 / view.scale,
+        );
+        ctx.setLineDash([]);
       }
     }
 
@@ -501,10 +518,9 @@ window.KC = window.KC || {};
     const hit = hitTest(pos.x, pos.y);
     if (!hit.row) return;
 
-    if (KC.rangeSelect && KC.rangeSelect.isActive()) {
-      if (!hit.inGutter && hit.valid) {
-        KC.rangeSelect.onCellTap(hit.row, hit.col);
-      }
+    if (KC.selection.isActive()) {
+      KC.selection.handleRowTap(hit.row.uid);
+      draw();
       return;
     }
 

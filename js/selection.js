@@ -13,6 +13,8 @@ window.KC = window.KC || {};
   let selectedUids = new Set();
   let multiClipboard = null; // { count, rows: [contentSnapshot, ...] }  (画面表示順=上から下)
   let lastSnapshot = null; // 直前の貼り付け操作前の全行スナップショット（1段のみ）
+  let rangePicking = false; // 「範囲で選択」の始点/終点待ち中か
+  let rangeAnchorUid = null; // 範囲選択の始点行
 
   function isActive() {
     return active;
@@ -26,6 +28,8 @@ window.KC = window.KC || {};
   function exit() {
     active = false;
     selectedUids.clear();
+    rangePicking = false;
+    rangeAnchorUid = null;
     KC.bus.emit("selectionChanged");
   }
   function isSelected(uid) {
@@ -35,6 +39,50 @@ window.KC = window.KC || {};
     if (selectedUids.has(uid)) selectedUids.delete(uid);
     else selectedUids.add(uid);
     KC.bus.emit("selectionChanged");
+  }
+
+  function isRangePicking() {
+    return rangePicking;
+  }
+  function getRangeAnchorUid() {
+    return rangeAnchorUid;
+  }
+  function startRangePick() {
+    rangePicking = true;
+    rangeAnchorUid = null;
+    KC.bus.emit("selectionChanged");
+  }
+  function cancelRangePick() {
+    rangePicking = false;
+    rangeAnchorUid = null;
+    KC.bus.emit("selectionChanged");
+  }
+  function selectRange(uidA, uidB) {
+    const state = S.get();
+    const idxA = S.rowIndex(uidA);
+    const idxB = S.rowIndex(uidB);
+    if (idxA < 0 || idxB < 0) return;
+    const lo = Math.min(idxA, idxB);
+    const hi = Math.max(idxA, idxB);
+    for (let i = lo; i <= hi; i++) {
+      selectedUids.add(state.rows[i].uid);
+    }
+  }
+  // 通常タップ（1行トグル）と範囲選択の始点/終点タップを振り分ける
+  function handleRowTap(uid) {
+    if (rangePicking) {
+      if (!rangeAnchorUid) {
+        rangeAnchorUid = uid;
+        KC.bus.emit("selectionChanged");
+      } else {
+        selectRange(rangeAnchorUid, uid);
+        rangePicking = false;
+        rangeAnchorUid = null;
+        KC.bus.emit("selectionChanged");
+      }
+      return;
+    }
+    toggle(uid);
   }
   function clearChecks() {
     selectedUids.clear();
@@ -168,6 +216,11 @@ window.KC = window.KC || {};
     exit,
     isSelected,
     toggle,
+    handleRowTap,
+    isRangePicking,
+    getRangeAnchorUid,
+    startRangePick,
+    cancelRangePick,
     clearChecks,
     count,
     cleanupMissing,

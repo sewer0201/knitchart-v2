@@ -191,6 +191,11 @@ input {
   background: var(--panel-line);
   color: var(--ink);
 }
+.pill-btn.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
 .pill-btn.danger-outline {
   border-color: var(--danger);
   color: var(--danger);
@@ -762,11 +767,20 @@ input {
 .repeat-stepper button:disabled {
   opacity: 0.35;
 }
-.repeat-stepper span {
+.repeat-stepper .repeat-input {
   font-size: 1.05rem;
   font-weight: 700;
-  min-width: 28px;
+  width: 56px;
   text-align: center;
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+  height: 40px;
+  -moz-appearance: textfield;
+}
+.repeat-stepper .repeat-input::-webkit-inner-spin-button,
+.repeat-stepper .repeat-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 .repeat-row {
   display: flex;

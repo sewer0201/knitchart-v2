@@ -10,10 +10,8 @@ window.KC = window.KC || {};
 
   const DEFAULT_BG_COLOR = "#F5F5F5"; // 地の色が未設定のときの表示色
   const DEFAULT_FG_COLOR = "#9B9B9B"; // 柄の色が未設定のときの表示色
-  const REPEAT_MIN = 2,
-    REPEAT_MAX = 20;
-  const SIZE_MIN = 1,
-    SIZE_MAX = 300;
+  const REPEAT_MIN = 2;
+  const SIZE_MIN = 1, SIZE_MAX = 300;
 
   let uidCounter = 1;
   function newUid(prefix) {
@@ -28,8 +26,9 @@ window.KC = window.KC || {};
     return ((offset % repeat) + repeat) % repeat;
   }
 
-  function makeRow(repeat, bg, fg, offset) {
-    repeat = clamp(repeat || 12, REPEAT_MIN, REPEAT_MAX);
+  function makeRow(repeat, bg, fg, offset, maxRepeat) {
+    const cap = Math.max(REPEAT_MIN, maxRepeat != null ? maxRepeat : 12);
+    repeat = clamp(repeat || 12, REPEAT_MIN, cap);
     return {
       uid: newUid("r"),
       repeat: repeat,
@@ -41,9 +40,10 @@ window.KC = window.KC || {};
   }
 
   function makeDefaultState() {
+    const cols = 40;
     const rows = [];
-    for (let i = 0; i < 40; i++) rows.push(makeRow(12, null, null));
-    return { cols: 40, yarns: [], rows: rows };
+    for (let i = 0; i < 40; i++) rows.push(makeRow(12, null, null, 0, cols));
+    return { cols: cols, yarns: [], rows: rows };
   }
 
   let state = makeDefaultState();
@@ -116,7 +116,8 @@ window.KC = window.KC || {};
     row.stitches[idx] = !!value;
   }
   function setRowRepeat(row, n) {
-    n = clamp(parseInt(n, 10) || row.repeat, REPEAT_MIN, REPEAT_MAX);
+    const cap = Math.max(REPEAT_MIN, state.cols);
+    n = clamp(parseInt(n, 10) || row.repeat, REPEAT_MIN, cap);
     const newStitches = new Array(n).fill(false);
     for (let k = 0; k < Math.min(n, row.stitches.length); k++)
       newStitches[k] = row.stitches[k];
@@ -151,6 +152,8 @@ window.KC = window.KC || {};
       refRow ? refRow.repeat : 12,
       refRow ? refRow.bg : null,
       refRow ? refRow.fg : null,
+      0,
+      state.cols,
     );
     if (direction === "bottom") state.rows.unshift(row);
     else state.rows.push(row);
@@ -241,9 +244,8 @@ window.KC = window.KC || {};
       return { uid, id: String(y.id), color: y.color || "#cccccc" };
     });
     const targetCols = clamp(data.cols, SIZE_MIN, SIZE_MAX);
-    // 通常のくり返し行は REPEAT_MIN〜REPEAT_MAX、
-    // くり返しを解除した行（目数いっぱいまで拡張済み）はその目数まで許容する
-    const maxRepeat = Math.max(REPEAT_MAX, targetCols);
+    // くり返し目数の上限は編み図の列数（目数）とする
+    const maxRepeat = Math.max(REPEAT_MIN, targetCols);
     const newRows = data.rows.map((r) => {
       const repeat = clamp(r.repeat || 12, REPEAT_MIN, maxRepeat);
       let stitches = Array.isArray(r.stitches)
@@ -264,7 +266,7 @@ window.KC = window.KC || {};
     const next = {
       cols: targetCols,
       yarns: newYarns,
-      rows: newRows.length ? newRows : [makeRow(12, null, null)],
+      rows: newRows.length ? newRows : [makeRow(12, null, null, 0, targetCols)],
     };
     replaceState(next);
   }
@@ -273,7 +275,7 @@ window.KC = window.KC || {};
     DEFAULT_BG_COLOR,
     DEFAULT_FG_COLOR,
     REPEAT_MIN,
-    REPEAT_MAX,
+    repeatMax: () => Math.max(REPEAT_MIN, state.cols),
     SIZE_MIN,
     SIZE_MAX,
     clamp,

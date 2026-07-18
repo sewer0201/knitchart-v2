@@ -43,6 +43,7 @@
           <span id="bulk-status" class="bulk-status">選択中: 0行</span>
           <div class="bulk-actions">
             <div class="bulk-actions-row">
+              <button id="bulk-range-btn" type="button" class="pill-btn subtle">範囲で選択</button>
               <button id="bulk-copy-btn" type="button" class="pill-btn subtle" disabled>選択した行をコピー</button>
               <button id="bulk-release-repeat-btn" type="button" class="pill-btn subtle" disabled
                 title="選択した行の柄をキープしたまま、くり返しを解除します">選択した行の繰り返しを解除する</button>
@@ -201,7 +202,7 @@
           <div class="repeat-stepper">
             <button id="row-repeat-minus" type="button" aria-label="くり返し目数を減らす"><i class="ti ti-minus"
                 aria-hidden="true"></i></button>
-            <span id="row-repeat-val">12</span>
+            <input type="number" id="row-repeat-input" class="repeat-input" inputmode="numeric" value="12">
             <button id="row-repeat-plus" type="button" aria-label="くり返し目数を増やす"><i class="ti ti-plus"
                 aria-hidden="true"></i></button>
           </div>

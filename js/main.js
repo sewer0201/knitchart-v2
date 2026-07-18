@@ -45,6 +45,10 @@ window.KC = window.KC || {};
     q("enter-range-select-btn").addEventListener("click", () =>
       KC.rangeSelect.enter(),
     );
+    q("bulk-range-btn").addEventListener("click", () => {
+      if (KC.selection.isRangePicking()) KC.selection.cancelRangePick();
+      else KC.selection.startRangePick();
+    });
     q("zoom-reset-btn").addEventListener("click", () => KC.grid.resetView());
 
     q("bulk-copy-btn").addEventListener("click", () =>
@@ -115,9 +119,20 @@ window.KC = window.KC || {};
     if (bulkActive) {
       const n = KC.selection.count();
       const clip = KC.selection.clipboardCount();
-      let status = `選択中: ${n}行`;
-      if (clip) status += `／コピー済み: ${clip}行`;
+      let status;
+      if (KC.selection.isRangePicking()) {
+        status = KC.selection.getRangeAnchorUid()
+          ? "終点にしたい行をタップしてください"
+          : "始点にしたい行をタップしてください";
+      } else {
+        status = `選択中: ${n}行`;
+        if (clip) status += `／コピー済み: ${clip}行`;
+      }
       q("bulk-status").textContent = status;
+      q("bulk-range-btn").classList.toggle(
+        "is-active",
+        KC.selection.isRangePicking(),
+      );
       q("bulk-copy-btn").disabled = n === 0;
       q("bulk-release-repeat-btn").disabled = n === 0;
       const pasteDisabled = !KC.selection.canPaste();
