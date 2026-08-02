@@ -12,7 +12,7 @@ window.KC = window.KC || {};
   const DEFAULT_FG_COLOR = "#9B9B9B"; // 柄の色が未設定のときの表示色
   const REPEAT_MIN = 2;
   const SIZE_MIN = 1,
-    SIZE_MAX = 300;
+    SIZE_MAX = 1000;
 
   let uidCounter = 1;
   function newUid(prefix) {
