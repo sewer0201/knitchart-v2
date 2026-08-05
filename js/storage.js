@@ -93,7 +93,16 @@ window.KC = window.KC || {};
     KC.bus.on("sizeChanged", scheduleSave);
     KC.bus.on("dataReplaced", scheduleSave);
     if (nameInput) nameInput.addEventListener("input", scheduleSave);
+    // beforeunloadはモバイルブラウザ（特にiOS Safari）でタブを閉じる際に
+    // ほぼ発火しないため、それだけに頼ると編集直後にタブを閉じたときの
+    // デバウンス待ち分が保存されずに消えてしまう。
+    // visibilitychange / pagehide はモバイルでも確実に発火するため、
+    // それらでも即座に保存を確定させる。
     window.addEventListener("beforeunload", saveNow);
+    window.addEventListener("pagehide", saveNow);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") saveNow();
+    });
   }
 
   KC.storage = { init, bindAutoSave, saveNow, restore, isAvailable };

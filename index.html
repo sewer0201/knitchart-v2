@@ -137,30 +137,43 @@
         <div class="tab-content">
           <div class="panel">
             <h2>編み図のサイズ</h2>
-            <div class="size-row">
-              <div class="size-field">
-                <label for="rows-input">行数</label>
-                <input type="number" id="rows-input" min="1" max="1000" value="40">
+
+            <div class="size-axis-card">
+              <div class="size-axis-head">
+                <span class="size-axis-title">行数</span>
+                <div class="size-stepper">
+                  <button id="remove-row-btn" type="button" aria-label="行を1つ削除"><i class="ti ti-minus"
+                      aria-hidden="true"></i></button>
+                  <input type="number" id="rows-input" min="1" max="300" value="40">
+                  <button id="add-row-btn" type="button" aria-label="行を1つ追加"><i class="ti ti-plus"
+                      aria-hidden="true"></i></button>
+                </div>
               </div>
-              <div class="size-field">
-                <label for="cols-input">目数（列）</label>
-                <input type="number" id="cols-input" min="1" max="1000" value="40">
-              </div>
-            </div>
-            <div class="row-direction-field">
-              <p class="row-direction-label">行数を増減する方向</p>
               <div class="row-direction-toggle" role="group" aria-label="行数を増減する方向">
                 <button type="button" class="row-direction-btn is-active" data-direction="top">上（大きい番号側）</button>
                 <button type="button" class="row-direction-btn" data-direction="bottom">下（小さい番号側）</button>
               </div>
             </div>
-            <button id="apply-size-btn" type="button" class="size-apply-btn">サイズを反映</button>
-            <div class="size-quick-actions">
-              <button id="add-row-btn" type="button"><i class="ti ti-plus" aria-hidden="true"></i> 行を1つ追加</button>
-              <button id="remove-row-btn" type="button"><i class="ti ti-minus" aria-hidden="true"></i> 行を1つ削除</button>
-              <button id="add-col-btn" type="button"><i class="ti ti-plus" aria-hidden="true"></i> 列を1つ追加</button>
-              <button id="remove-col-btn" type="button"><i class="ti ti-minus" aria-hidden="true"></i> 列を1つ削除</button>
+
+            <div class="size-axis-card">
+              <div class="size-axis-head">
+                <span class="size-axis-title">目数（列）</span>
+                <div class="size-stepper">
+                  <button id="remove-col-btn" type="button" aria-label="列を1つ削除"><i class="ti ti-minus"
+                      aria-hidden="true"></i></button>
+                  <input type="number" id="cols-input" min="1" max="300" value="40">
+                  <button id="add-col-btn" type="button" aria-label="列を1つ追加"><i class="ti ti-plus"
+                      aria-hidden="true"></i></button>
+                </div>
+              </div>
+              <div class="row-direction-toggle" role="group" aria-label="目数を増減する方向">
+                <button type="button" class="col-direction-btn" data-col-direction="left">左（小さい番号側）</button>
+                <button type="button" class="col-direction-btn is-active" data-col-direction="right">右（大きい番号側）</button>
+              </div>
             </div>
+
+            <button id="apply-size-btn" type="button" class="size-apply-btn">入力した数値をまとめて反映</button>
+            <p class="size-apply-note">±ボタンはその場で1ずつ増減、上の数値を書き換えて「反映」を押すと一気にその数値まで変更します。</p>
           </div>
         </div>
       </section>

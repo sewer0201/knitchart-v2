@@ -10,6 +10,7 @@ window.KC = window.KC || {};
   const S = KC.state;
   let rowsInput, colsInput;
   let rowDirection = "top"; // "top"（大きい番号側）／"bottom"（小さい番号側）
+  let colDirection = "right"; // "right"（大きい番号側）／"left"（小さい番号側）
 
   function init() {
     rowsInput = document.getElementById("rows-input");
@@ -27,11 +28,11 @@ window.KC = window.KC || {};
       afterChange();
     });
     document.getElementById("add-col-btn").addEventListener("click", () => {
-      S.addColumn();
+      S.addColumn(colDirection);
       afterChange();
     });
     document.getElementById("remove-col-btn").addEventListener("click", () => {
-      S.removeColumn();
+      S.removeColumn(colDirection);
       afterChange();
     });
 
@@ -39,6 +40,14 @@ window.KC = window.KC || {};
       btn.addEventListener("click", () => {
         rowDirection = btn.dataset.direction;
         document.querySelectorAll(".row-direction-btn").forEach((b) => {
+          b.classList.toggle("is-active", b === btn);
+        });
+      });
+    });
+    document.querySelectorAll(".col-direction-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        colDirection = btn.dataset.colDirection;
+        document.querySelectorAll(".col-direction-btn").forEach((b) => {
           b.classList.toggle("is-active", b === btn);
         });
       });
@@ -55,7 +64,7 @@ window.KC = window.KC || {};
   function onApply() {
     const targetRows = parseInt(rowsInput.value, 10) || 1;
     const targetCols = parseInt(colsInput.value, 10) || 1;
-    S.applySize(targetRows, targetCols, rowDirection);
+    S.applySize(targetRows, targetCols, rowDirection, colDirection);
     afterChange();
     KC.bus.emit("toast", "サイズを変更しました");
   }

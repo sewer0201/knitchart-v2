@@ -423,38 +423,51 @@ input {
 }
 
 /* ---------------- サイズタブ ---------------- */
-.size-row {
+.size-axis-card {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--panel-line);
+}
+.size-axis-head {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
-.size-field {
-  flex: 1 1 120px;
+.size-axis-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink);
+  flex: 0 0 auto;
+}
+.size-stepper {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
 }
-.size-field label {
-  font-size: 0.78rem;
-  color: var(--ink-soft);
-}
-.size-field input[type="number"] {
+.size-stepper input[type="number"] {
+  width: 64px;
   height: var(--tap-min);
-  padding: 0 12px;
+  padding: 0 8px;
   border: 1px solid var(--panel-line);
   border-radius: var(--radius-sm);
   background: #fff;
   font-size: 0.95rem;
-  width: 100%;
+  text-align: center;
 }
-.row-direction-field {
-  margin-bottom: 14px;
+.size-stepper button {
+  width: 40px;
+  height: var(--tap-min);
+  border: 1px solid var(--accent);
+  color: var(--accent-dark);
+  background: #fff;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
 }
-.row-direction-label {
-  font-size: 0.78rem;
-  color: var(--ink-soft);
-  margin: 0 0 6px;
+.size-stepper button:hover {
+  background: var(--accent);
+  color: #fff;
 }
 .row-direction-toggle {
   display: flex;
@@ -462,7 +475,8 @@ input {
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
-.row-direction-btn {
+.row-direction-btn,
+.col-direction-btn {
   flex: 1 1 50%;
   height: var(--tap-min);
   border: none;
@@ -471,10 +485,12 @@ input {
   font-size: 0.82rem;
   font-weight: 700;
 }
-.row-direction-btn + .row-direction-btn {
+.row-direction-btn + .row-direction-btn,
+.col-direction-btn + .col-direction-btn {
   border-left: 1px solid var(--accent);
 }
-.row-direction-btn.is-active {
+.row-direction-btn.is-active,
+.col-direction-btn.is-active {
   background: var(--accent);
   color: #fff;
 }
@@ -491,26 +507,11 @@ input {
 .size-apply-btn:hover {
   background: var(--accent-dark);
 }
-.size-quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
-}
-.size-quick-actions button {
-  flex: 1 1 auto;
-  height: var(--tap-min);
-  padding: 0 12px;
-  border: 1px solid var(--accent);
-  color: var(--accent-dark);
-  background: #fff;
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-.size-quick-actions button:hover {
-  background: var(--accent);
-  color: #fff;
+.size-apply-note {
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  margin: 8px 0 0;
+  line-height: 1.5;
 }
 
 /* ---------------- 書き出しタブ ---------------- */

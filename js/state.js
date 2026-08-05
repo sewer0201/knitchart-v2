@@ -175,25 +175,58 @@ window.KC = window.KC || {};
     else state.rows.pop();
     return true;
   }
-  // direction: "top"（大きい番号側から増減）／"bottom"（小さい番号側から増減）
-  function applySize(targetRows, targetCols, direction) {
-    direction = direction === "bottom" ? "bottom" : "top";
+  // rowDirection: "top"（大きい番号側から増減）／"bottom"（小さい番号側から増減）
+  // colDirection: "right"（大きい番号側から増減）／"left"（小さい番号側から増減）
+  function applySize(targetRows, targetCols, rowDirection, colDirection) {
+    rowDirection = rowDirection === "bottom" ? "bottom" : "top";
+    colDirection = colDirection === "left" ? "left" : "right";
     targetRows = clamp(targetRows, SIZE_MIN, SIZE_MAX);
     targetCols = clamp(targetCols, SIZE_MIN, SIZE_MAX);
     while (state.rows.length < targetRows) {
-      addRow(direction);
+      addRow(rowDirection);
     }
     while (state.rows.length > targetRows) {
-      if (direction === "bottom") state.rows.shift();
+      if (rowDirection === "bottom") state.rows.shift();
       else state.rows.pop();
     }
-    state.cols = targetCols;
+    while (state.cols < targetCols) {
+      addColumn(colDirection);
+    }
+    while (state.cols > targetCols) {
+      removeColumn(colDirection);
+    }
   }
-  function addColumn() {
-    state.cols = clamp(state.cols + 1, SIZE_MIN, SIZE_MAX);
+  // direction: "right"（大きい番号側＝右端）／"left"（小さい番号側＝左端）
+  function addColumn(direction) {
+    direction = direction === "left" ? "left" : "right";
+    const newCols = clamp(state.cols + 1, SIZE_MIN, SIZE_MAX);
+    if (newCols === state.cols) return;
+    state.rows.forEach((row) => {
+      if (isRepeatReleased(row)) {
+        if (direction === "left") row.stitches.unshift(false);
+        else row.stitches.push(false);
+        row.repeat = row.stitches.length;
+      } else if (direction === "left") {
+        // タイル表示の行は、既存の見た目を保ったまま左に1目伸ばす
+        row.offset = normalizeOffset(row.offset - 1, row.repeat);
+      }
+    });
+    state.cols = newCols;
   }
-  function removeColumn() {
-    state.cols = clamp(state.cols - 1, SIZE_MIN, SIZE_MAX);
+  function removeColumn(direction) {
+    direction = direction === "left" ? "left" : "right";
+    const newCols = clamp(state.cols - 1, SIZE_MIN, SIZE_MAX);
+    if (newCols === state.cols) return;
+    state.rows.forEach((row) => {
+      if (isRepeatReleased(row)) {
+        if (direction === "left") row.stitches.shift();
+        else row.stitches.pop();
+        row.repeat = row.stitches.length || 1;
+      } else if (direction === "left") {
+        row.offset = normalizeOffset(row.offset + 1, row.repeat);
+      }
+    });
+    state.cols = newCols;
   }
 
   /* ---------------- 行のコピー内容ヘルパ ---------------- */
