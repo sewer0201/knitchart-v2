@@ -1,6 +1,6 @@
 /* ============================================================
    state.js
-   データモデル / state 定義 / 毛糸・行の CRUD・正規化ロジック
+   データモデル / state 定義 / 毛糸・段の CRUD・正規化ロジック
    （As-Is仕様書 1章 に対応。UIには一切依存しない純粋なロジック層）
    ============================================================ */
 window.KC = window.KC || {};
@@ -97,7 +97,7 @@ window.KC = window.KC || {};
     });
   }
 
-  /* ---------------- 行 ---------------- */
+  /* ---------------- 段 ---------------- */
   function rowIndex(uid) {
     return state.rows.findIndex((r) => r.uid === uid);
   }
@@ -168,7 +168,7 @@ window.KC = window.KC || {};
     return true;
   }
   // direction: "top"（大きい番号側＝配列の末尾）／"bottom"（小さい番号側＝配列の先頭）
-  // 「行を1つ削除」クイックボタン用（addRowと対になる、方向指定での末尾1行削除）
+  // 「段を1つ削除」クイックボタン用（addRowと対になる、方向指定での末尾1段削除）
   function removeRowFromEnd(direction) {
     if (state.rows.length <= 1) return false;
     if (direction === "bottom") state.rows.shift();
@@ -207,7 +207,7 @@ window.KC = window.KC || {};
         else row.stitches.push(false);
         row.repeat = row.stitches.length;
       } else if (direction === "left") {
-        // タイル表示の行は、既存の見た目を保ったまま左に1目伸ばす
+        // タイル表示の段は、既存の見た目を保ったまま左に1目伸ばす
         row.offset = normalizeOffset(row.offset - 1, row.repeat);
       }
     });
@@ -229,7 +229,7 @@ window.KC = window.KC || {};
     state.cols = newCols;
   }
 
-  /* ---------------- 行のコピー内容ヘルパ ---------------- */
+  /* ---------------- 段のコピー内容ヘルパ ---------------- */
   function snapshotRowContent(row) {
     return {
       repeat: row.repeat,
@@ -286,7 +286,7 @@ window.KC = window.KC || {};
       return { uid, id: String(y.id), color: y.color || "#cccccc" };
     });
     const targetCols = clamp(data.cols, SIZE_MIN, SIZE_MAX);
-    // くり返し目数の上限は編み図の列数（目数）とする
+    // くり返し目数の上限は編み図の目数とする
     const maxRepeat = Math.max(REPEAT_MIN, targetCols);
     const newRows = data.rows.map((r) => {
       const repeat = clamp(r.repeat || 12, REPEAT_MIN, maxRepeat);

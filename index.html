@@ -30,8 +30,8 @@
             <button id="zoom-reset-btn" type="button" class="pill-btn subtle" title="全体を見る" aria-label="全体を見る">
               <i class="ti ti-scan-eye"></i>全体を見る
             </button>
-            <button id="enter-selection-btn" type="button" class="pill-btn subtle" title="複数行操作">
-              <i class="ti ti-circle-check"></i>複数行選択
+            <button id="enter-selection-btn" type="button" class="pill-btn subtle" title="複数段操作">
+              <i class="ti ti-circle-check"></i>複数段選択
             </button>
             <button id="enter-range-select-btn" type="button" class="pill-btn subtle" title="範囲選択">
               <i class="ti ti-maximize"></i>範囲選択
@@ -40,18 +40,18 @@
         </div>
 
         <div id="knit-toolbar-bulk" class="knit-toolbar is-hidden">
-          <span id="bulk-status" class="bulk-status">選択中: 0行</span>
+          <span id="bulk-status" class="bulk-status">選択中: 0段</span>
           <div class="bulk-actions">
             <div class="bulk-actions-row">
               <button id="bulk-range-btn" type="button" class="pill-btn subtle">
                 <i class="ti ti-arrows-vertical"></i>範囲で選択
               </button>
               <button id="bulk-copy-btn" type="button" class="pill-btn subtle" disabled>
-                <i class="ti ti-copy"></i>選択した行をコピー
+                <i class="ti ti-copy"></i>選択した段をコピー
               </button>
               <button id="bulk-release-repeat-btn" type="button" class="pill-btn subtle" disabled
-                title="選択した行の柄をキープしたまま、くり返しを解除します">
-                <i class="ti ti-repeat-off"></i>選択した行の繰り返しを解除する
+                title="選択した段の柄をキープしたまま、くり返しを解除します">
+                <i class="ti ti-repeat-off"></i>選択した段の繰り返しを解除する
               </button>
               <button id="bulk-clear-btn" type="button" class="pill-btn subtle">
                 <i class="ti ti-circle-dashed"></i>選択を解除
@@ -140,16 +140,16 @@
 
             <div class="size-axis-card">
               <div class="size-axis-head">
-                <span class="size-axis-title">行数</span>
+                <span class="size-axis-title">段数</span>
                 <div class="size-stepper">
-                  <button id="remove-row-btn" type="button" aria-label="行を1つ削除"><i class="ti ti-minus"
+                  <button id="remove-row-btn" type="button" aria-label="段を1つ削除"><i class="ti ti-minus"
                       aria-hidden="true"></i></button>
                   <input type="number" id="rows-input" min="1" max="300" value="40">
-                  <button id="add-row-btn" type="button" aria-label="行を1つ追加"><i class="ti ti-plus"
+                  <button id="add-row-btn" type="button" aria-label="段を1つ追加"><i class="ti ti-plus"
                       aria-hidden="true"></i></button>
                 </div>
               </div>
-              <div class="row-direction-toggle" role="group" aria-label="行数を増減する方向">
+              <div class="row-direction-toggle" role="group" aria-label="段数を増減する方向">
                 <button type="button" class="row-direction-btn is-active" data-direction="top">上（大きい番号側）</button>
                 <button type="button" class="row-direction-btn" data-direction="bottom">下（小さい番号側）</button>
               </div>
@@ -157,12 +157,12 @@
 
             <div class="size-axis-card">
               <div class="size-axis-head">
-                <span class="size-axis-title">目数（列）</span>
+                <span class="size-axis-title">目数</span>
                 <div class="size-stepper">
-                  <button id="remove-col-btn" type="button" aria-label="列を1つ削除"><i class="ti ti-minus"
+                  <button id="remove-col-btn" type="button" aria-label="目を1つ削除"><i class="ti ti-minus"
                       aria-hidden="true"></i></button>
                   <input type="number" id="cols-input" min="1" max="300" value="40">
-                  <button id="add-col-btn" type="button" aria-label="列を1つ追加"><i class="ti ti-plus"
+                  <button id="add-col-btn" type="button" aria-label="目を1つ追加"><i class="ti ti-plus"
                       aria-hidden="true"></i></button>
                 </div>
               </div>
@@ -224,7 +224,7 @@
       </button>
     </nav>
 
-    <!-- ============ 行編集ボトムシート ============ -->
+    <!-- ============ 段編集ボトムシート ============ -->
     <div id="sheet-backdrop" class="sheet-backdrop"></div>
     <div id="row-sheet" class="row-sheet" role="dialog" aria-modal="true" aria-labelledby="row-sheet-title">
       <div class="sheet-handle"></div>
@@ -246,8 +246,8 @@
                 aria-hidden="true"></i></button>
           </div>
           <button id="row-release-repeat-btn" type="button" class="release-repeat-btn"
-            title="今の柄をキープしたまま、この行のくり返しをやめて1目ずつ編集できるようにします">
-            <i class="ti ti-repeat-off" aria-hidden="true"></i>この行の繰り返しを解除する
+            title="今の柄をキープしたまま、この段のくり返しをやめて1目ずつ編集できるようにします">
+            <i class="ti ti-repeat-off" aria-hidden="true"></i>この段の繰り返しを解除する
           </button>
         </div>
       </div>
@@ -264,7 +264,7 @@
       </div>
 
       <button id="row-delete-btn" type="button" class="sheet-delete-btn"><i class="ti ti-x"
-          aria-hidden="true"></i>この行を削除</button>
+          aria-hidden="true"></i>この段を削除</button>
     </div>
 
     <!-- ============ 毛糸リスト選択ボトムシート ============ -->
@@ -300,8 +300,8 @@
       <ul class="howto-list">
         <li><i class="ti ti-hand-click" aria-hidden="true"></i>マス目をタップ：地の色⇄柄の色を切り替え</li>
         <li><i class="ti ti-arrows-diagonal" aria-hidden="true"></i>ピンチ操作／ドラッグ：拡大縮小・表示位置の移動</li>
-        <li><i class="ti ti-list-numbers" aria-hidden="true"></i>行番号をタップ：その行の編集メニューを開く</li>
-        <li><i class="ti ti-hand-finger" aria-hidden="true"></i>行を長押し：コピー/貼り付けモードに入る(右上のコピーボタンからも開けます)</li>
+        <li><i class="ti ti-list-numbers" aria-hidden="true"></i>段番号をタップ：その段の編集メニューを開く</li>
+        <li><i class="ti ti-hand-finger" aria-hidden="true"></i>段を長押し：コピー/貼り付けモードに入る(右上のコピーボタンからも開けます)</li>
       </ul>
     </div>
 

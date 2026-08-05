@@ -1,6 +1,6 @@
 /* ============================================================
    selection.js
-   複数行選択（選択モード）／コピー・貼り付け／1段undo
+   複数段選択（選択モード）／コピー・貼り付け／1段undo
    （As-Is仕様書 3.5、v2要件定義書 3.4 に対応）
    ============================================================ */
 window.KC = window.KC || {};
@@ -12,9 +12,9 @@ window.KC = window.KC || {};
   let active = false; // 選択モード中か
   let selectedUids = new Set();
   let multiClipboard = null; // { count, rows: [contentSnapshot, ...] }  (画面表示順=上から下)
-  let lastSnapshot = null; // 直前の貼り付け操作前の全行スナップショット（1段のみ）
+  let lastSnapshot = null; // 直前の貼り付け操作前の全段スナップショット（1段のみ）
   let rangePicking = false; // 「範囲で選択」の始点/終点待ち中か
-  let rangeAnchorUid = null; // 範囲選択の始点行
+  let rangeAnchorUid = null; // 範囲選択の始点段
 
   function isActive() {
     return active;
@@ -68,7 +68,7 @@ window.KC = window.KC || {};
       selectedUids.add(state.rows[i].uid);
     }
   }
-  // 通常タップ（1行トグル）と範囲選択の始点/終点タップを振り分ける
+  // 通常タップ（1段トグル）と範囲選択の始点/終点タップを振り分ける
   function handleRowTap(uid) {
     if (rangePicking) {
       if (!rangeAnchorUid) {
@@ -102,7 +102,7 @@ window.KC = window.KC || {};
   function copySelected() {
     const state = S.get();
     cleanupMissing();
-    // 画面表示順（行番号が大きい方が上）でコピーする
+    // 画面表示順（段番号が大きい方が上）でコピーする
     const selectedRows = state.rows
       .filter((r) => selectedUids.has(r.uid))
       .reverse();
@@ -126,13 +126,13 @@ window.KC = window.KC || {};
   }
 
   // kind: "all"（既定）／"colors"（色だけ）／"pattern"（柄だけ）
-  // flip: true にすると、コピーした行の並びを上下反転してから貼り付ける
+  // flip: true にすると、コピーした段の並びを上下反転してから貼り付ける
   function pasteFromSelected(kind, flip) {
     kind = kind || "all";
     if (!canPaste()) return;
     const state = S.get();
     cleanupMissing();
-    // 画面表示順（上から下）で選択行を並べる
+    // 画面表示順（上から下）で選択段を並べる
     const selectedRows = state.rows
       .filter((r) => selectedUids.has(r.uid))
       .reverse();
@@ -144,8 +144,8 @@ window.KC = window.KC || {};
       : multiClipboard.rows;
 
     if (selectedRows.length === 1) {
-      // 選択が1行のときは、その行を起点として画面の下方向へ
-      // コピーした行数ぶん連続で貼り付ける（従来どおりの「起点貼り付け」）
+      // 選択が1段のときは、その段を起点として画面の下方向へ
+      // コピーした段数ぶん連続で貼り付ける（従来どおりの「起点貼り付け」）
       const targetIndex = S.rowIndex(selectedRows[0].uid);
       for (let k = 0; k < multiClipboard.count; k++) {
         const destIndex = targetIndex - k;
@@ -153,10 +153,10 @@ window.KC = window.KC || {};
         applyByKind(state.rows[destIndex], clipRows[k], kind);
       }
     } else {
-      // 選択が2行以上のときは、選択した行数ぶんに合わせて
+      // 選択が2段以上のときは、選択した段数ぶんに合わせて
       // コピー内容を先頭から繰り返し当てはめる
-      // 例）Aを1行コピー→3行選択で貼り付け = AAA
-      //     ABCDを4行コピー→6行選択で貼り付け = ABCDAB
+      // 例）Aを1段コピー→3段選択で貼り付け = AAA
+      //     ABCDを4段コピー→6段選択で貼り付け = ABCDAB
       selectedRows.forEach((row, i) => {
         const content = clipRows[i % multiClipboard.count];
         applyByKind(row, content, kind);
@@ -196,7 +196,7 @@ window.KC = window.KC || {};
     return multiClipboard ? multiClipboard.count : 0;
   }
 
-  // 選択中の行すべてについて、今の柄をキープしたままくり返しを解除する
+  // 選択中の段すべてについて、今の柄をキープしたままくり返しを解除する
   function releaseRepeatForSelected() {
     const state = S.get();
     cleanupMissing();

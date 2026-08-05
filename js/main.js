@@ -56,7 +56,7 @@ window.KC = window.KC || {};
     );
     q("bulk-release-repeat-btn").addEventListener("click", () => {
       KC.selection.releaseRepeatForSelected();
-      KC.bus.emit("toast", "選択した行の繰り返しを解除しました");
+      KC.bus.emit("toast", "選択した段の繰り返しを解除しました");
     });
     q("bulk-paste-btn").addEventListener("click", () =>
       KC.selection.pasteFromSelected("all"),
@@ -122,11 +122,11 @@ window.KC = window.KC || {};
       let status;
       if (KC.selection.isRangePicking()) {
         status = KC.selection.getRangeAnchorUid()
-          ? "終点にしたい行をタップしてください"
-          : "始点にしたい行をタップしてください";
+          ? "終点にしたい段をタップしてください"
+          : "始点にしたい段をタップしてください";
       } else {
-        status = `選択中: ${n}行`;
-        if (clip) status += `／コピー済み: ${clip}行`;
+        status = `選択中: ${n}段`;
+        if (clip) status += `／コピー済み: ${clip}段`;
       }
       q("bulk-status").textContent = status;
       q("bulk-range-btn").classList.toggle(

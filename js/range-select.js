@@ -14,7 +14,7 @@ window.KC = window.KC || {};
   let corner2 = null; // { rowUid, col }
   let clipboard = null; // { rows, cols, cells: bool[][] }
   let pasteAnchor = null; // { rowUid, col }
-  let lastSnapshot = null; // 直前の貼り付け前の行スナップショット（undo用）
+  let lastSnapshot = null; // 直前の貼り付け前の段スナップショット（undo用）
 
   function isActive() {
     return active;

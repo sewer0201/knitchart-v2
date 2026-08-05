@@ -49,7 +49,7 @@ window.KC = window.KC || {};
   function requestDelete(y) {
     if (
       !confirm(
-        `毛糸「${y.id}」を削除しますか？この毛糸を使っている行は既定色（グレー）表示に戻ります。`,
+        `毛糸「${y.id}」を削除しますか？この毛糸を使っている段は既定色（グレー）表示に戻ります。`,
       )
     )
       return;

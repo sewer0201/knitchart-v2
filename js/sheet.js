@@ -1,6 +1,6 @@
 /* ============================================================
    sheet.js
-   行編集ボトムシート（くり返し目数・地の色/柄の色スウォッチ選択・
+   段編集ボトムシート（くり返し目数・地の色/柄の色スウォッチ選択・
    コピー/貼り付け3種・削除）。v2要件定義書 3.3 に対応。
    ============================================================ */
 window.KC = window.KC || {};
@@ -177,7 +177,7 @@ window.KC = window.KC || {};
     if (!row) return;
     S.releaseRepeat(row);
     KC.bus.emit("rowsChanged");
-    KC.bus.emit("toast", "この行のくり返しを解除しました");
+    KC.bus.emit("toast", "この段のくり返しを解除しました");
   }
 
   function onDelete() {
@@ -185,7 +185,7 @@ window.KC = window.KC || {};
     if (!row) return;
     const state = S.get();
     if (state.rows.length <= 1) {
-      alert("最後の1行は削除できません。");
+      alert("最後の1段は削除できません。");
       return;
     }
     const rowNumber = S.rowIndex(row.uid) + 1;
