@@ -18,6 +18,7 @@ window.KC = window.KC || {};
   const BASE_CELL = 26; // 拡大率1.0のときの1マスのサイズ(px)
   const GUTTER_W = 40; // 段番号ガター幅（画面座標系・固定・ズームの影響を受けない）
   const GUTTER_W_SELECTION = 56; // 選択モード時の段番号ガター幅（画面座標系・固定・ズームの影響を受けない）
+  const YARN_LABEL_W = 56; // 段番号の右に表示する「地/柄」毛糸番号ラベルの幅（画面座標系）
   const GUTTER_H = 32; // 目数番号ガター高さ（画面座標系・固定・ズームの影響を受けない）
   const MIN_SCALE = 0.15;
   const MAX_SCALE = 4;
@@ -88,8 +89,16 @@ window.KC = window.KC || {};
     draw();
   }
 
-  function gutterWidth() {
+  function rowNumWidth() {
     return KC.selection.isActive() ? GUTTER_W_SELECTION : GUTTER_W;
+  }
+  function gutterWidth() {
+    return rowNumWidth() + YARN_LABEL_W;
+  }
+  function yarnLabelFor(row) {
+    const bg = row.bg ? S.findYarn(row.bg) : null;
+    const fg = row.fg ? S.findYarn(row.fg) : null;
+    return `${bg ? bg.id : "－"} / ${fg ? fg.id : "－"}`;
   }
 
   /* ---------------- 描画 ---------------- */
@@ -266,12 +275,15 @@ window.KC = window.KC || {};
     ctx.restore();
 
     /* ---- 段番号ガター（画面左側に固定。常に見える） ---- */
+    const numW = rowNumWidth();
     ctx.save();
     ctx.fillStyle = "#FAF6EF";
     ctx.fillRect(0, 0, gutterW, vh);
     ctx.strokeStyle = "rgba(44,44,42,0.15)";
     ctx.lineWidth = 1;
     ctx.beginPath();
+    ctx.moveTo(numW - 0.5, 0);
+    ctx.lineTo(numW - 0.5, vh);
     ctx.moveTo(gutterW - 0.5, 0);
     ctx.lineTo(gutterW - 0.5, vh);
     ctx.stroke();
@@ -307,9 +319,28 @@ window.KC = window.KC || {};
         ctx.font = numberFont(rowNumber, 18, "'Zen Maru Gothic', sans-serif");
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
-        ctx.fillText(String(rowNumber), gutterW - 8, midY);
+        ctx.fillText(String(rowNumber), numW - 8, midY);
       }
     });
+
+    if (showNumbers) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(numW, 0, YARN_LABEL_W, vh);
+      ctx.clip();
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.font = "11px 'Zen Maru Gothic', sans-serif";
+      ctx.fillStyle = "#8a8a86";
+      rowMeta.forEach(({ row, displayIndex }) => {
+        const screenY =
+          GUTTER_H + view.ty + displayIndex * BASE_CELL * view.scale;
+        const rowH = BASE_CELL * view.scale;
+        const midY = screenY + rowH / 2;
+        ctx.fillText(yarnLabelFor(row), numW + 6, midY);
+      });
+      ctx.restore();
+    }
     ctx.restore();
 
     /* ---- 左上コーナー（両ガターの交点。段/目数どちらのガター色でもよいので上書きしておく） ---- */
