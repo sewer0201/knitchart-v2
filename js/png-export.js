@@ -11,6 +11,7 @@ window.KC = window.KC || {};
 
   const NUMBER_COLOR_NORMAL = "#a1a1a1";
   const NUMBER_COLOR_FIVE = "#6C6C68";
+  const REF_CELL = 26; // canvas-grid.js の BASE_CELL と同じ基準（ガイド線太さの相対換算用）
 
   function numberColor(n) {
     return n % 5 === 0 ? NUMBER_COLOR_FIVE : NUMBER_COLOR_NORMAL;
@@ -145,6 +146,19 @@ window.KC = window.KC || {};
         ctx.fillText(String(colNumber), x, offsetY - 10);
       }
     }
+
+    // ガイド線（縦線。編集画面のマス目境界と同じ位置に、相対的な太さを保って描画）
+    S.getGuideLines().forEach((gl) => {
+      ctx.strokeStyle = gl.color;
+      ctx.lineWidth = Math.max(1, gl.width * (cell / REF_CELL));
+      S.guideLineBoundaries(gl).forEach((boundary) => {
+        const x = offsetX + boundary * cell;
+        ctx.beginPath();
+        ctx.moveTo(x, offsetY);
+        ctx.lineTo(x, offsetY + gridH);
+        ctx.stroke();
+      });
+    });
 
     ctx.strokeStyle = "#161615";
     ctx.lineWidth = 2;

@@ -175,6 +175,17 @@
             <button id="apply-size-btn" type="button" class="size-apply-btn">入力した数値をまとめて反映</button>
             <p class="size-apply-note">±ボタンはその場で1ずつ増減、上の数値を書き換えて「反映」を押すと一気にその数値まで変更します。</p>
           </div>
+
+          <div class="panel">
+            <div class="panel-header-row">
+              <h2>ガイド線</h2>
+            </div>
+            <p class="empty-note is-hidden" id="guide-line-empty-note">まだガイド線は追加されていません。</p>
+            <ul id="guide-line-list" class="guide-line-list"></ul>
+            <button id="add-guide-line-btn" type="button" class="pill-btn subtle">
+              <i class="ti ti-plus" aria-hidden="true"></i>ガイド線を追加
+            </button>
+          </div>
         </div>
       </section>
 
@@ -281,6 +292,54 @@
       <button id="preset-add-btn" type="button" class="preset-add-btn" disabled>選択した色を追加</button>
     </div>
 
+    <!-- ============ ガイド線編集ボトムシート ============ -->
+    <div id="guide-sheet-backdrop" class="sheet-backdrop"></div>
+    <div id="guide-line-sheet" class="row-sheet" role="dialog" aria-modal="true" aria-labelledby="guide-line-sheet-title">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 id="guide-line-sheet-title">ガイド線を追加</h3>
+        <button id="guide-line-sheet-close" type="button" class="sheet-close-btn" aria-label="閉じる">
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="sheet-block">
+        <p class="sheet-block-label">基準位置</p>
+        <div class="row-direction-toggle" role="group" aria-label="基準位置">
+          <button type="button" class="guide-ref-btn is-active" data-ref="edges">左右から</button>
+          <button type="button" class="guide-ref-btn" data-ref="center">中央から</button>
+        </div>
+      </div>
+
+      <div class="sheet-block">
+        <p class="sheet-block-label">ズレ（目数）</p>
+        <div class="repeat-stepper">
+          <button id="guide-offset-minus" type="button" aria-label="ズレを減らす"><i class="ti ti-minus" aria-hidden="true"></i></button>
+          <input type="number" id="guide-offset-input" class="repeat-input" inputmode="numeric" value="0" min="0">
+          <button id="guide-offset-plus" type="button" aria-label="ズレを増やす"><i class="ti ti-plus" aria-hidden="true"></i></button>
+        </div>
+      </div>
+
+      <div class="sheet-block">
+        <p class="sheet-block-label">色</p>
+        <input type="color" id="guide-color-input" value="#c4302b">
+      </div>
+
+      <div class="sheet-block">
+        <p class="sheet-block-label">太さ</p>
+        <div class="repeat-stepper">
+          <button id="guide-width-minus" type="button" aria-label="太さを減らす"><i class="ti ti-minus" aria-hidden="true"></i></button>
+          <input type="number" id="guide-width-input" class="repeat-input" inputmode="numeric" value="4" min="1" max="12">
+          <button id="guide-width-plus" type="button" aria-label="太さを増やす"><i class="ti ti-plus" aria-hidden="true"></i></button>
+        </div>
+      </div>
+
+      <button id="guide-add-confirm-btn" type="button" class="size-apply-btn">この内容でガイド線を追加</button>
+
+      <button id="guide-delete-btn" type="button" class="sheet-delete-btn is-hidden"><i class="ti ti-x"
+          aria-hidden="true"></i>このガイド線を削除</button>
+    </div>
+
     <div id="toast" class="toast"></div>
 
     <div id="loading-overlay" class="loading-overlay">
@@ -319,6 +378,7 @@
   <script src="js/yarn-presets.js"></script>
   <script src="js/preset-sheet.js"></script>
   <script src="js/size-tab.js"></script>
+  <script src="js/guide-lines.js"></script>
   <script src="js/png-export.js"></script>
   <script src="js/json-io.js"></script>
   <script src="js/export-tab.js"></script>

@@ -240,6 +240,23 @@ window.KC = window.KC || {};
         ctx.restore();
       });
     }
+
+    // ---- ガイド線（縦線。マス目の境界線と同じ位置。印刷書き出しにも反映される） ----
+    const guideLines = S.getGuideLines();
+    if (guideLines.length > 0) {
+      const gridHeight = state.rows.length * BASE_CELL;
+      guideLines.forEach((gl) => {
+        ctx.strokeStyle = gl.color;
+        ctx.lineWidth = Math.max(1, gl.width);
+        S.guideLineBoundaries(gl).forEach((boundary) => {
+          const x = boundary * BASE_CELL;
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, gridHeight);
+          ctx.stroke();
+        });
+      });
+    }
     ctx.restore();
 
     const showNumbers = cellScreen >= 9;

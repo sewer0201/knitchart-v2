@@ -476,7 +476,8 @@ input {
   overflow: hidden;
 }
 .row-direction-btn,
-.col-direction-btn {
+.col-direction-btn,
+.guide-ref-btn {
   flex: 1 1 50%;
   height: var(--tap-min);
   border: none;
@@ -486,11 +487,13 @@ input {
   font-weight: 700;
 }
 .row-direction-btn + .row-direction-btn,
-.col-direction-btn + .col-direction-btn {
+.col-direction-btn + .col-direction-btn,
+.guide-ref-btn + .guide-ref-btn {
   border-left: 1px solid var(--accent);
 }
 .row-direction-btn.is-active,
-.col-direction-btn.is-active {
+.col-direction-btn.is-active,
+.guide-ref-btn.is-active {
   background: var(--accent);
   color: #fff;
 }
@@ -502,7 +505,6 @@ input {
   background: var(--accent);
   color: #fff;
   font-weight: 700;
-  font-size: 0.92rem;
 }
 .size-apply-btn:hover {
   background: var(--accent-dark);
@@ -1015,6 +1017,52 @@ input {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ---------------- ガイド線リスト ---------------- */
+.is-hidden {
+  display: none;
+}
+.guide-line-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.guide-line-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--panel-line);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  min-height: var(--tap-min);
+  cursor: pointer;
+}
+.guide-line-item:hover {
+  border-color: var(--accent);
+}
+.guide-line-swatch {
+  width: 28px;
+  height: 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.guide-line-label {
+  font-size: 0.88rem;
+  color: var(--ink);
+  flex: 1 1 auto;
+}
+#guide-color-input {
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 1px solid var(--panel-line);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  background: #fff;
 }
 
 /* ---------------- レスポンシブ（PC幅） ---------------- */

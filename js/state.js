@@ -44,7 +44,7 @@ window.KC = window.KC || {};
     const cols = 40;
     const rows = [];
     for (let i = 0; i < 40; i++) rows.push(makeRow(12, null, null, 0, cols));
-    return { cols: cols, yarns: [], rows: rows };
+    return { cols: cols, yarns: [], rows: rows, guideLines: [] };
   }
 
   let state = makeDefaultState();
@@ -229,6 +229,55 @@ window.KC = window.KC || {};
     state.cols = newCols;
   }
 
+  /* ---------------- ガイド線（縦の目印線・1セット2本） ---------------- */
+  // ref: "edges"（左右の端から、それぞれoffset目の位置に1本ずつ）
+  //      "center"（中央から左右にoffset目ずつズレた位置に1本ずつ）
+  // offset: 目数（0以上の整数）
+  function getGuideLines() {
+    return state.guideLines;
+  }
+  function findGuideLine(uid) {
+    return state.guideLines.find((g) => g.uid === uid);
+  }
+  function normalizeGuideLine(opts) {
+    return {
+      ref: opts.ref === "center" ? "center" : "edges",
+      offset: Math.max(0, parseInt(opts.offset, 10) || 0),
+      color: typeof opts.color === "string" ? opts.color : "#c4302b",
+      width: Math.max(1, parseInt(opts.width, 10) || 2),
+    };
+  }
+  function addGuideLine(opts) {
+    const gl = Object.assign({ uid: newUid("g") }, normalizeGuideLine(opts || {}));
+    state.guideLines.push(gl);
+    return gl;
+  }
+  function updateGuideLine(uid, patch) {
+    const gl = findGuideLine(uid);
+    if (!gl) return;
+    Object.assign(gl, normalizeGuideLine(Object.assign({}, gl, patch)));
+  }
+  function removeGuideLine(uid) {
+    state.guideLines = state.guideLines.filter((g) => g.uid !== uid);
+  }
+  // 現在の目数(state.cols)を基準に、実際にマス目境界のどこに引くか(0〜cols)を
+  // 配列で返す（通常2本。中央基準でoffset=0のときなど重なる場合は1本にまとめる）
+  function guideLineBoundaries(gl) {
+    const cols = state.cols;
+    let a, b;
+    if (gl.ref === "center") {
+      const center = cols / 2;
+      a = center - gl.offset;
+      b = center + gl.offset;
+    } else {
+      a = gl.offset;
+      b = cols - gl.offset;
+    }
+    a = clamp(Math.round(a), 0, cols);
+    b = clamp(Math.round(b), 0, cols);
+    return a === b ? [a] : [a, b];
+  }
+
   /* ---------------- 段のコピー内容ヘルパ ---------------- */
   function snapshotRowContent(row) {
     return {
@@ -267,6 +316,7 @@ window.KC = window.KC || {};
       cols: state.cols,
       yarns: state.yarns,
       rows: state.rows,
+      guideLines: state.guideLines,
     };
   }
 
@@ -305,10 +355,16 @@ window.KC = window.KC || {};
         offset,
       };
     });
+    const newGuideLines = Array.isArray(data.guideLines)
+      ? data.guideLines.map((g) =>
+          Object.assign({ uid: newUid("g") }, normalizeGuideLine(g)),
+        )
+      : [];
     const next = {
       cols: targetCols,
       yarns: newYarns,
       rows: newRows.length ? newRows : [makeRow(12, null, null, 0, targetCols)],
+      guideLines: newGuideLines,
     };
     replaceState(next);
   }
@@ -354,6 +410,12 @@ window.KC = window.KC || {};
     applyAll,
     applyColorsOnly,
     applyPatternOnly,
+    getGuideLines,
+    findGuideLine,
+    addGuideLine,
+    updateGuideLine,
+    removeGuideLine,
+    guideLineBoundaries,
     buildExportData,
     loadFromData,
   };

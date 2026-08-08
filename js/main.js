@@ -180,6 +180,7 @@ window.KC = window.KC || {};
     KC.yarnTab.init();
     KC.presetSheet.init();
     KC.sizeTab.init();
+    KC.guideLines.init();
     KC.exportTab.init();
     KC.howto.init();
     // 各モジュールの初期化が終わってから、以後の変更を自動保存するようにする
