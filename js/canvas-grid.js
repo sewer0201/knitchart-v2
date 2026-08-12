@@ -21,7 +21,7 @@ window.KC = window.KC || {};
 
   const BASE_CELL = 26; // 拡大率1.0のときの1マスのサイズ(px)
   const GUTTER_W = 40; // 段番号ガター幅（画面座標系・固定・ズームの影響を受けない）
-  const GUTTER_W_SELECTION = 56; // 選択モード時の段番号ガター幅（画面座標系・固定・ズームの影響を受けない）
+  const GUTTER_W_SELECTION = 60; // 選択モード時の段番号ガター幅（画面座標系・固定・ズームの影響を受けない）
   const YARN_LABEL_W = 56; // 段番号の右に表示する「地/柄」毛糸番号ラベルの幅（画面座標系）
   const GUTTER_H = 32; // 目番号ガター高さ（画面座標系・固定・ズームの影響を受けない）
   const MIN_SCALE = 0.15;
@@ -56,6 +56,7 @@ window.KC = window.KC || {};
   let downInfo = null; // 単一ポインタのタップ/長押し判定用
   let longPressTimer = null;
   let suppressNextTap = false;
+  let rafId = null; // パン/ピンチ/ホイール中の再描画間引き用
 
   function clampScale(s) {
     return S.clamp(s, MIN_SCALE, MAX_SCALE);
@@ -108,6 +109,17 @@ window.KC = window.KC || {};
   }
 
   /* ---------------- 描画 ---------------- */
+  // パン/ピンチ/ホイールは pointermove 等が高頻度で発火するため、毎回
+  // 同期的に draw() を呼ぶと大きい編み図（例: 185段×381目）で重くなる。
+  // rAF で1フレームに1回だけ描くよう間引く。
+  function scheduleDraw() {
+    if (rafId != null) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      draw();
+    });
+  }
+
   function draw() {
     if (!ctx || !viewport) return;
     const state = S.get();
@@ -167,14 +179,20 @@ window.KC = window.KC || {};
         const x = c * BASE_CELL;
         ctx.fillStyle = color;
         ctx.fillRect(x, y, BASE_CELL, BASE_CELL);
-        ctx.strokeStyle = "rgba(44,44,42,0.18)";
-        ctx.lineWidth = 1 / view.scale;
-        ctx.strokeRect(
-          x + 0.5 / view.scale,
-          y + 0.5 / view.scale,
-          BASE_CELL,
-          BASE_CELL,
-        );
+        // マス目の枠線は、画面上でマスが小さくなり過ぎたら省略する。
+        // どうせ見分けがつかない上に、大きい編み図（例：185段×381目）を
+        // 縮小してパンする際、strokeRect の呼び出し回数がボトルネックに
+        // なるため。
+        if (cellScreen >= 5) {
+          ctx.strokeStyle = "rgba(44,44,42,0.18)";
+          ctx.lineWidth = 1 / view.scale;
+          ctx.strokeRect(
+            x + 0.5 / view.scale,
+            y + 0.5 / view.scale,
+            BASE_CELL,
+            BASE_CELL,
+          );
+        }
       }
 
       if (isSelected) {
@@ -343,9 +361,9 @@ window.KC = window.KC || {};
       if (showNumbers) {
         ctx.fillStyle = isSelected ? "#C46A3E" : numberColor(rowNumber);
         ctx.font = numberFont(rowNumber, 18, "'Zen Maru Gothic', sans-serif");
-        ctx.textAlign = "left";
+        ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(String(rowNumber), numColX0 + 8, midY);
+        ctx.fillText(String(rowNumber), numColX0 + 20, midY);
       }
     });
 
@@ -354,7 +372,7 @@ window.KC = window.KC || {};
       ctx.beginPath();
       ctx.rect(gutterX0, 0, YARN_LABEL_W, vh);
       ctx.clip();
-      ctx.textAlign = "right";
+      ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.font = "11px 'Zen Maru Gothic', sans-serif";
       ctx.fillStyle = "#8a8a86";
@@ -363,7 +381,7 @@ window.KC = window.KC || {};
           GUTTER_H + view.ty + displayIndex * BASE_CELL * view.scale;
         const rowH = BASE_CELL * view.scale;
         const midY = screenY + rowH / 2;
-        ctx.fillText(yarnLabelFor(row), numColX0 - 6, midY);
+        ctx.fillText(yarnLabelFor(row), numColX0 - 28, midY);
       });
       ctx.restore();
     }
@@ -496,7 +514,7 @@ window.KC = window.KC || {};
       view.scale = newScale;
       view.tx = m.x - anchorContentX * newScale;
       view.ty = m.y - GUTTER_H - anchorContentY * newScale;
-      draw();
+      scheduleDraw();
       return;
     }
 
@@ -511,7 +529,7 @@ window.KC = window.KC || {};
       if (gesture === "pan") {
         view.tx = panStart.tx0 + (pos.x - panStart.x);
         view.ty = panStart.ty0 + (pos.y - panStart.y);
-        draw();
+        scheduleDraw();
       }
     }
   }
@@ -614,7 +632,7 @@ window.KC = window.KC || {};
     view.scale = newScale;
     view.tx = pos.x - contentX * newScale;
     view.ty = pos.y - GUTTER_H - contentY * newScale;
-    draw();
+    scheduleDraw();
   }
 
   function resetView() {
