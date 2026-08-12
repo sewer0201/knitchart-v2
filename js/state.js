@@ -96,6 +96,9 @@ window.KC = window.KC || {};
       if (r.fg === uid) r.fg = null;
     });
   }
+  function isYarnUsed(uid) {
+    return state.rows.some((r) => r.bg === uid || r.fg === uid);
+  }
 
   /* ---------------- 段 ---------------- */
   function rowIndex(uid) {
@@ -390,6 +393,7 @@ window.KC = window.KC || {};
     hasYarnId,
     updateYarn,
     deleteYarn,
+    isYarnUsed,
     rowIndex,
     findRow,
     toggleStitch,

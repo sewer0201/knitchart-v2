@@ -3,11 +3,15 @@
    編み図グリッドの描画・ピンチズーム/パン・セルタップ・
    段番号タップ（段編集シートを開く）・長押し（選択モードに入る）
 
-   段番号ガター（左）・目数番号ガター（上）は共に「画面に固定された
+   段番号ガター（右）・目番号ガター（上）は共に「画面に固定された
    フローズンペイン」として、セル部分のパン/ズームとは切り離して描画する。
    段番号ガターは縦方向のパン/ズームに追従し（横に動かしても番号が
-   画面外に消えない）、目数番号ガターは横方向のパン/ズームに追従する
+   画面外に消えない）、目番号ガターは横方向のパン/ズームに追従する
    （縦に動かしても番号が画面外に消えない）。
+
+   段番号ガターは画面右端に固定表示される。ガター内は、セル本体に
+   近い側（左）に「段で使用している毛糸の番号」列、画面右端に最も
+   近い側（外側）に「段番号」列を配置する。
    ============================================================ */
 window.KC = window.KC || {};
 
@@ -19,7 +23,7 @@ window.KC = window.KC || {};
   const GUTTER_W = 40; // 段番号ガター幅（画面座標系・固定・ズームの影響を受けない）
   const GUTTER_W_SELECTION = 56; // 選択モード時の段番号ガター幅（画面座標系・固定・ズームの影響を受けない）
   const YARN_LABEL_W = 56; // 段番号の右に表示する「地/柄」毛糸番号ラベルの幅（画面座標系）
-  const GUTTER_H = 32; // 目数番号ガター高さ（画面座標系・固定・ズームの影響を受けない）
+  const GUTTER_H = 32; // 目番号ガター高さ（画面座標系・固定・ズームの影響を受けない）
   const MIN_SCALE = 0.15;
   const MAX_SCALE = 4;
   const TAP_MOVE_THRESHOLD = 9; // これ以上動いたらタップではなくパン/ドラッグ扱い
@@ -38,7 +42,9 @@ window.KC = window.KC || {};
 
   let canvas, ctx, viewport;
   // view.tx / view.ty はセル部分（ガターを除いた本体グリッド）のパン量。
-  // 画面座標 = GUTTER_W + view.tx + contentX*scale （横）
+  // セル本体は画面左端(0)を起点に描画され、ガターはその右側
+  // （画面右端）に固定表示される。
+  // 画面座標 = view.tx + contentX*scale （横）
   // 画面座標 = GUTTER_H + view.ty + contentY*scale （縦）
   let view = { scale: 1, tx: 0, ty: 0 };
   let fitted = false;
@@ -127,17 +133,17 @@ window.KC = window.KC || {};
       Math.ceil(contentYmax / BASE_CELL),
     );
 
-    /* ---- セル本体（ガターの右下。パン/ズームが効く） ---- */
+    /* ---- セル本体（画面左端起点・ガターの左側。パン/ズームが効く） ---- */
     ctx.save();
     ctx.beginPath();
     ctx.rect(
-      gutterW,
+      0,
       GUTTER_H,
       Math.max(0, vw - gutterW),
       Math.max(0, vh - GUTTER_H),
     );
     ctx.clip();
-    ctx.translate(gutterW + view.tx, GUTTER_H + view.ty);
+    ctx.translate(view.tx, GUTTER_H + view.ty);
     ctx.scale(view.scale, view.scale);
 
     const rowMeta = []; // ガター描画用に screenY 等を控えておく
@@ -261,21 +267,21 @@ window.KC = window.KC || {};
 
     const showNumbers = cellScreen >= 9;
 
-    /* ---- 目数番号ガター（画面上部に固定。常に見える） ---- */
+    /* ---- 目番号ガター（画面上部に固定。常に見える。右のガター分を除いた幅） ---- */
     ctx.save();
     ctx.fillStyle = "#FAF6EF";
-    ctx.fillRect(gutterW, 0, Math.max(0, vw - gutterW), GUTTER_H);
+    ctx.fillRect(0, 0, Math.max(0, vw - gutterW), GUTTER_H);
     ctx.strokeStyle = "rgba(44,44,42,0.15)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(gutterW, GUTTER_H - 0.5);
-    ctx.lineTo(vw, GUTTER_H - 0.5);
+    ctx.moveTo(0, GUTTER_H - 0.5);
+    ctx.lineTo(vw - gutterW, GUTTER_H - 0.5);
     ctx.stroke();
 
     if (showNumbers) {
       ctx.save();
       ctx.beginPath();
-      ctx.rect(gutterW, 0, Math.max(0, vw - gutterW), GUTTER_H);
+      ctx.rect(0, 0, Math.max(0, vw - gutterW), GUTTER_H);
       ctx.clip();
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -284,25 +290,28 @@ window.KC = window.KC || {};
         ctx.fillStyle = numberColor(colNumber);
         ctx.font = numberFont(colNumber, 18, "'Zen Maru Gothic', sans-serif");
         const screenX =
-          gutterW + view.tx + c * BASE_CELL * view.scale + cellScreen / 2;
+          view.tx + c * BASE_CELL * view.scale + cellScreen / 2;
         ctx.fillText(String(colNumber), screenX, GUTTER_H / 2);
       }
       ctx.restore();
     }
     ctx.restore();
 
-    /* ---- 段番号ガター（画面左側に固定。常に見える） ---- */
+    /* ---- 段番号ガター（画面右側に固定。常に見える）
+       セル本体に近い側（左）に毛糸番号列、画面右端側（外側）に段番号列。 ---- */
     const numW = rowNumWidth();
+    const gutterX0 = vw - gutterW; // ガター全体の左端（＝毛糸番号列の左端／セル本体との境界）
+    const numColX0 = vw - numW; // 段番号列の左端（＝毛糸番号列との境界）
     ctx.save();
     ctx.fillStyle = "#FAF6EF";
-    ctx.fillRect(0, 0, gutterW, vh);
+    ctx.fillRect(gutterX0, 0, gutterW, vh);
     ctx.strokeStyle = "rgba(44,44,42,0.15)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(numW - 0.5, 0);
-    ctx.lineTo(numW - 0.5, vh);
-    ctx.moveTo(gutterW - 0.5, 0);
-    ctx.lineTo(gutterW - 0.5, vh);
+    ctx.moveTo(gutterX0 + 0.5, 0);
+    ctx.lineTo(gutterX0 + 0.5, vh);
+    ctx.moveTo(numColX0 + 0.5, 0);
+    ctx.lineTo(numColX0 + 0.5, vh);
     ctx.stroke();
 
     rowMeta.forEach(({ row, rowNumber, displayIndex, isSelected }) => {
@@ -313,7 +322,7 @@ window.KC = window.KC || {};
 
       if (selection.isActive()) {
         const r = 9;
-        const cx = 16;
+        const cx = vw - 16;
         ctx.beginPath();
         ctx.arc(cx, midY, r, 0, Math.PI * 2);
         ctx.fillStyle = isSelected ? "#C46A3E" : "#ffffff";
@@ -334,18 +343,18 @@ window.KC = window.KC || {};
       if (showNumbers) {
         ctx.fillStyle = isSelected ? "#C46A3E" : numberColor(rowNumber);
         ctx.font = numberFont(rowNumber, 18, "'Zen Maru Gothic', sans-serif");
-        ctx.textAlign = "right";
+        ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(String(rowNumber), numW - 8, midY);
+        ctx.fillText(String(rowNumber), numColX0 + 8, midY);
       }
     });
 
     if (showNumbers) {
       ctx.save();
       ctx.beginPath();
-      ctx.rect(numW, 0, YARN_LABEL_W, vh);
+      ctx.rect(gutterX0, 0, YARN_LABEL_W, vh);
       ctx.clip();
-      ctx.textAlign = "left";
+      ctx.textAlign = "right";
       ctx.textBaseline = "middle";
       ctx.font = "11px 'Zen Maru Gothic', sans-serif";
       ctx.fillStyle = "#8a8a86";
@@ -354,23 +363,23 @@ window.KC = window.KC || {};
           GUTTER_H + view.ty + displayIndex * BASE_CELL * view.scale;
         const rowH = BASE_CELL * view.scale;
         const midY = screenY + rowH / 2;
-        ctx.fillText(yarnLabelFor(row), numW + 6, midY);
+        ctx.fillText(yarnLabelFor(row), numColX0 - 6, midY);
       });
       ctx.restore();
     }
     ctx.restore();
 
-    /* ---- 左上コーナー（両ガターの交点。段/目数どちらのガター色でもよいので上書きしておく） ---- */
+    /* ---- 右上コーナー（両ガターの交点。段/目数どちらのガター色でもよいので上書きしておく） ---- */
     ctx.save();
     ctx.fillStyle = "#FAF6EF";
-    ctx.fillRect(0, 0, gutterW, GUTTER_H);
+    ctx.fillRect(gutterX0, 0, gutterW, GUTTER_H);
     ctx.strokeStyle = "rgba(44,44,42,0.15)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(gutterW - 0.5, 0);
-    ctx.lineTo(gutterW - 0.5, GUTTER_H);
-    ctx.moveTo(gutterW, GUTTER_H - 0.5);
-    ctx.lineTo(0, GUTTER_H - 0.5);
+    ctx.moveTo(gutterX0 + 0.5, 0);
+    ctx.lineTo(gutterX0 + 0.5, GUTTER_H);
+    ctx.moveTo(gutterX0, GUTTER_H - 0.5);
+    ctx.lineTo(vw, GUTTER_H - 0.5);
     ctx.stroke();
     ctx.restore();
   }
@@ -381,9 +390,10 @@ window.KC = window.KC || {};
   function hitTest(sx, sy) {
     const state = S.get();
     const gutterW = gutterWidth();
+    const vw = viewport ? viewport.clientWidth : 0;
 
     if (sy < GUTTER_H) {
-      // 目数番号ガター（および左上コーナー）：タップしても何も起きない
+      // 目番号ガター（および右上コーナー）：タップしても何も起きない
       return { row: null, inColHeader: true };
     }
 
@@ -395,10 +405,10 @@ window.KC = window.KC || {};
     const row = state.rows[rowNumber - 1];
     if (!row) return { row: null };
 
-    if (sx < gutterW) {
+    if (sx >= vw - gutterW) {
       return { row, rowNumber, inGutter: true, valid: true };
     }
-    const contentX = (sx - gutterW - view.tx) / view.scale;
+    const contentX = (sx - view.tx) / view.scale;
     const col = Math.floor(contentX / BASE_CELL);
     const valid = col >= 0 && col < state.cols;
     return { row, rowNumber, inGutter: false, col, valid };
@@ -474,18 +484,17 @@ window.KC = window.KC || {};
     pointers.set(e.pointerId, pos);
 
     if (gesture === "pinch" && pointers.size >= 2) {
-      const gutterW = gutterWidth();
       const pts = Array.from(pointers.values());
       const d = Math.max(1, dist(pts[0], pts[1]));
       const m = mid(pts[0], pts[1]);
       const newScale = clampScale(pinchStart.scale0 * (d / pinchStart.dist0));
       // ピンチ中心のコンテンツ座標を保ったままズーム＋パンを同時に行う
       const anchorContentX =
-        (pinchStart.mid0.x - gutterW - pinchStart.tx0) / pinchStart.scale0;
+        (pinchStart.mid0.x - pinchStart.tx0) / pinchStart.scale0;
       const anchorContentY =
         (pinchStart.mid0.y - GUTTER_H - pinchStart.ty0) / pinchStart.scale0;
       view.scale = newScale;
-      view.tx = m.x - gutterW - anchorContentX * newScale;
+      view.tx = m.x - anchorContentX * newScale;
       view.ty = m.y - GUTTER_H - anchorContentY * newScale;
       draw();
       return;
@@ -566,6 +575,13 @@ window.KC = window.KC || {};
     const hit = hitTest(pos.x, pos.y);
     if (!hit.row) return;
 
+    if (KC.rangeSelect && KC.rangeSelect.isActive()) {
+      if (!hit.inGutter && hit.valid) {
+        KC.rangeSelect.onCellTap(hit.row, hit.col);
+      }
+      return;
+    }
+
     if (KC.selection.isActive()) {
       KC.selection.handleRowTap(hit.row.uid);
       draw();
@@ -593,11 +609,10 @@ window.KC = window.KC || {};
     const zoomIntensity = 0.0016;
     const factor = Math.exp(-e.deltaY * zoomIntensity);
     const newScale = clampScale(view.scale * factor);
-    const gutterW = gutterWidth();
-    const contentX = (pos.x - gutterW - view.tx) / view.scale;
+    const contentX = (pos.x - view.tx) / view.scale;
     const contentY = (pos.y - GUTTER_H - view.ty) / view.scale;
     view.scale = newScale;
-    view.tx = pos.x - gutterW - contentX * newScale;
+    view.tx = pos.x - contentX * newScale;
     view.ty = pos.y - GUTTER_H - contentY * newScale;
     draw();
   }

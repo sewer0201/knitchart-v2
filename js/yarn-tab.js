@@ -19,7 +19,8 @@ window.KC = window.KC || {};
     colorInput = document.getElementById("yarn-color-input");
 
     formEl.addEventListener("submit", onSubmit);
-    KC.bus.on("rowsChanged", () => {}); // no-op placeholder for symmetry
+    // 段の毛糸割り当てが変わると「未使用」判定も変わるため再描画する
+    KC.bus.on("rowsChanged", render);
     KC.bus.on("dataReplaced", render);
     KC.bus.on("tabActivated", (tab) => {
       if (tab === "yarn") render();
@@ -73,6 +74,8 @@ window.KC = window.KC || {};
     yarns.forEach((y) => {
       const card = document.createElement("li");
       card.className = "yarn-card";
+      const used = S.isYarnUsed(y.uid);
+      if (!used) card.classList.add("is-unused");
 
       if (editingUid === y.uid) {
         card.classList.add("is-editing");
@@ -151,8 +154,16 @@ window.KC = window.KC || {};
 
         card.appendChild(sw);
         card.appendChild(label);
+        if (!used) {
+          const badge = document.createElement("span");
+          badge.className = "yarn-card-unused-badge";
+          badge.textContent = "未使用";
+          card.appendChild(badge);
+        }
         card.appendChild(delBtn);
-        card.title = "タップして編集";
+        card.title = used
+          ? "タップして編集"
+          : "編み図で使われていません。タップして編集";
         card.addEventListener("click", () => {
           editingUid = y.uid;
           render();

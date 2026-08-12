@@ -78,7 +78,7 @@ window.KC = window.KC || {};
     }
 
     const LABEL_FONT = "13px sans-serif";
-    const colHeaderH = 26; // 目数番号を表示するための上部余白
+    const colHeaderH = 26; // 目番号を表示するための上部余白
     const groups = [];
     displayRows.forEach((dr, displayIndex) => {
       const key = (dr.row.bg || "none") + "|" + (dr.row.fg || "none");
