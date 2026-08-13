@@ -44,7 +44,7 @@ window.KC = window.KC || {};
     const cols = 40;
     const rows = [];
     for (let i = 0; i < 40; i++) rows.push(makeRow(12, null, null, 0, cols));
-    return { cols: cols, yarns: [], rows: rows, guideLines: [] };
+    return { cols: cols, yarns: [], rows: rows, guideLines: [], printRanges: [] };
   }
 
   let state = makeDefaultState();
@@ -281,6 +281,61 @@ window.KC = window.KC || {};
     return a === b ? [a] : [a, b];
   }
 
+  /* ---------------- 印刷範囲（保存タブ「印刷する部分を設定」で作る、印刷用画像の書き出し単位） ----------------
+     startRow/endRow: 段番号（1始まり、下から数えた通常の段番号。start<=end）
+     startCol/endCol: 目のインデックス（0始まり。start<=end）
+     dividerColor: この範囲の印刷用画像で使うセクション区切り線の色
+     ---------------------------------------------------------------------------------------------------- */
+  function getPrintRanges() {
+    return state.printRanges;
+  }
+  function findPrintRange(uid) {
+    return state.printRanges.find((p) => p.uid === uid);
+  }
+  function normalizePrintRange(opts) {
+    opts = opts || {};
+    const rowMax = Math.max(1, state.rows.length);
+    const colMax = Math.max(0, state.cols - 1);
+    let startRow = clamp(parseInt(opts.startRow, 10) || 1, 1, rowMax);
+    let endRow = clamp(parseInt(opts.endRow, 10) || startRow, 1, rowMax);
+    if (startRow > endRow) {
+      const t = startRow;
+      startRow = endRow;
+      endRow = t;
+    }
+    let startCol = clamp(parseInt(opts.startCol, 10) || 0, 0, colMax);
+    let endCol = clamp(parseInt(opts.endCol, 10) || startCol, 0, colMax);
+    if (startCol > endCol) {
+      const t = startCol;
+      startCol = endCol;
+      endCol = t;
+    }
+    return {
+      startRow,
+      endRow,
+      startCol,
+      endCol,
+      dividerColor:
+        typeof opts.dividerColor === "string" ? opts.dividerColor : "#161615",
+    };
+  }
+  function addPrintRange(opts) {
+    const pr = Object.assign(
+      { uid: newUid("p") },
+      normalizePrintRange(opts || {}),
+    );
+    state.printRanges.push(pr);
+    return pr;
+  }
+  function updatePrintRange(uid, patch) {
+    const pr = findPrintRange(uid);
+    if (!pr) return;
+    Object.assign(pr, normalizePrintRange(Object.assign({}, pr, patch)));
+  }
+  function removePrintRange(uid) {
+    state.printRanges = state.printRanges.filter((p) => p.uid !== uid);
+  }
+
   /* ---------------- 段のコピー内容ヘルパ ---------------- */
   function snapshotRowContent(row) {
     return {
@@ -320,6 +375,7 @@ window.KC = window.KC || {};
       yarns: state.yarns,
       rows: state.rows,
       guideLines: state.guideLines,
+      printRanges: state.printRanges,
     };
   }
 
@@ -363,11 +419,51 @@ window.KC = window.KC || {};
           Object.assign({ uid: newUid("g") }, normalizeGuideLine(g)),
         )
       : [];
+    // printRanges は段番号/目インデックスをそのまま参照しているため、
+    // 読み込んだ段数・目数を基準にクランプして正規化しておく
+    const newRowCount = newRows.length ? newRows.length : 1;
+    const prColMax = Math.max(0, targetCols - 1);
+    const newPrintRanges = Array.isArray(data.printRanges)
+      ? data.printRanges.map((p) => {
+          let startRow = clamp(parseInt(p.startRow, 10) || 1, 1, newRowCount);
+          let endRow = clamp(
+            parseInt(p.endRow, 10) || startRow,
+            1,
+            newRowCount,
+          );
+          if (startRow > endRow) {
+            const t = startRow;
+            startRow = endRow;
+            endRow = t;
+          }
+          let startCol = clamp(parseInt(p.startCol, 10) || 0, 0, prColMax);
+          let endCol = clamp(
+            parseInt(p.endCol, 10) || startCol,
+            0,
+            prColMax,
+          );
+          if (startCol > endCol) {
+            const t = startCol;
+            startCol = endCol;
+            endCol = t;
+          }
+          return {
+            uid: newUid("p"),
+            startRow,
+            endRow,
+            startCol,
+            endCol,
+            dividerColor:
+              typeof p.dividerColor === "string" ? p.dividerColor : "#161615",
+          };
+        })
+      : [];
     const next = {
       cols: targetCols,
       yarns: newYarns,
       rows: newRows.length ? newRows : [makeRow(12, null, null, 0, targetCols)],
       guideLines: newGuideLines,
+      printRanges: newPrintRanges,
     };
     replaceState(next);
   }
@@ -420,6 +516,11 @@ window.KC = window.KC || {};
     updateGuideLine,
     removeGuideLine,
     guideLineBoundaries,
+    getPrintRanges,
+    findPrintRange,
+    addPrintRange,
+    updatePrintRange,
+    removePrintRange,
     buildExportData,
     loadFromData,
   };

@@ -12,6 +12,9 @@
    段番号ガターは画面右端に固定表示される。ガター内は、セル本体に
    近い側（左）に「段で使用している毛糸の番号」列、画面右端に最も
    近い側（外側）に「段番号」列を配置する。
+
+   印刷範囲選択モード（KC.printRangeSelect）が有効な間は、編み図全体を
+   薄く表示した上に、確定済み/選択中の印刷範囲を紫の枠で重ねて描画する。
    ============================================================ */
 window.KC = window.KC || {};
 
@@ -227,6 +230,18 @@ window.KC = window.KC || {};
       }
     }
 
+    // 印刷範囲選択モード中は編み図全体を少し薄く表示し、紫の選択枠が
+    // 目立つようにする（選択枠自体はこの後に上から重ねて描くので薄くならない）
+    if (KC.printRangeSelect && KC.printRangeSelect.isActive()) {
+      ctx.fillStyle = "rgba(250,246,239,0.6)";
+      ctx.fillRect(
+        contentXmin,
+        contentYmin,
+        contentXmax - contentXmin,
+        contentYmax - contentYmin,
+      );
+    }
+
     if (KC.rangeSelect && KC.rangeSelect.isActive()) {
       KC.rangeSelect.getOverlayGeometry().forEach((r) => {
         const dTop = Math.max(0, r.dTop);
@@ -265,6 +280,81 @@ window.KC = window.KC || {};
       });
     }
 
+    if (KC.printRangeSelect && KC.printRangeSelect.isActive()) {
+      KC.printRangeSelect.getOverlayGeometry().forEach((r) => {
+        const dTop = Math.max(0, r.dTop);
+        const dBottom = Math.min(state.rows.length - 1, r.dBottom);
+        const cLeft = Math.max(0, r.cLeft);
+        const cRight = Math.min(state.cols - 1, r.cRight);
+        if (dTop > dBottom || cLeft > cRight) return;
+        const x = cLeft * BASE_CELL;
+        const y = dTop * BASE_CELL;
+        const w = (cRight - cLeft + 1) * BASE_CELL;
+        const h = (dBottom - dTop + 1) * BASE_CELL;
+        ctx.save();
+        if (r.kind === "print-range") {
+          // 既に確定している印刷範囲：塗り＋枠＋番号ラベル
+          ctx.fillStyle = "rgba(106,62,196,0.16)";
+          ctx.fillRect(x, y, w, h);
+          ctx.strokeStyle = "#6A3EC4";
+          ctx.lineWidth = 2 / view.scale;
+          ctx.strokeRect(
+            x + 1 / view.scale,
+            y + 1 / view.scale,
+            w - 2 / view.scale,
+            h - 2 / view.scale,
+          );
+          const labelSize = 14 / view.scale;
+          ctx.fillStyle = "#6A3EC4";
+          ctx.fillRect(x, y, labelSize * 1.6, labelSize * 1.4);
+          ctx.fillStyle = "#ffffff";
+          ctx.font = `bold ${labelSize}px 'Zen Maru Gothic', sans-serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            String(r.index),
+            x + labelSize * 0.8,
+            y + labelSize * 0.7,
+          );
+        } else if (r.kind === "print-range-original") {
+          // 選び直し中の「元の範囲」：塗りなしの薄い破線で目印として残す
+          ctx.strokeStyle = "#9B8AC4";
+          ctx.lineWidth = 2 / view.scale;
+          ctx.setLineDash([3 / view.scale, 5 / view.scale]);
+          ctx.strokeRect(
+            x + 1 / view.scale,
+            y + 1 / view.scale,
+            w - 2 / view.scale,
+            h - 2 / view.scale,
+          );
+          ctx.setLineDash([]);
+        } else if (r.kind === "print-range-pending") {
+          // まだ確定していない、選択中の2点分のプレビュー
+          ctx.strokeStyle = "#6A3EC4";
+          ctx.lineWidth = 2 / view.scale;
+          ctx.setLineDash([6 / view.scale, 4 / view.scale]);
+          ctx.strokeRect(
+            x + 1 / view.scale,
+            y + 1 / view.scale,
+            w - 2 / view.scale,
+            h - 2 / view.scale,
+          );
+          ctx.setLineDash([]);
+        } else {
+          // 1点目だけタップした状態のマーカー
+          ctx.strokeStyle = "#6A3EC4";
+          ctx.lineWidth = 2 / view.scale;
+          ctx.strokeRect(
+            x + 1 / view.scale,
+            y + 1 / view.scale,
+            w - 2 / view.scale,
+            h - 2 / view.scale,
+          );
+        }
+        ctx.restore();
+      });
+    }
+
     // ---- ガイド線（縦線。マス目の境界線と同じ位置。印刷書き出しにも反映される） ----
     const guideLines = S.getGuideLines();
     if (guideLines.length > 0) {
@@ -283,7 +373,12 @@ window.KC = window.KC || {};
     }
     ctx.restore();
 
+    // 9以上13未満: 目番号・段番号は5の倍数のみ表示（毛糸番号ラベルは表示）
+    // 13以上: 段番号を全て表示（毛糸番号ラベルも表示）
+    // 目番号は横に並ぶため詰まりやすく、25以上になるまで5の倍数以外は表示しない
     const showNumbers = cellScreen >= 9;
+    const showAllNumbers = cellScreen >= 13;
+    const showAllColNumbers = cellScreen >= 25;
 
     /* ---- 目番号ガター（画面上部に固定。常に見える。右のガター分を除いた幅） ---- */
     ctx.save();
@@ -304,7 +399,8 @@ window.KC = window.KC || {};
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       for (let c = colStart; c <= colEnd; c++) {
-        const colNumber = c + 1;
+        const colNumber = state.cols - c; // 目番号は右から左に大きくなる
+        if (!showAllColNumbers && colNumber % 5 !== 0) continue;
         ctx.fillStyle = numberColor(colNumber);
         ctx.font = numberFont(colNumber, 18, "'Zen Maru Gothic', sans-serif");
         const screenX =
@@ -332,6 +428,10 @@ window.KC = window.KC || {};
     ctx.lineTo(numColX0 + 0.5, vh);
     ctx.stroke();
 
+    // 段番号は列内で右寄せにする。選択モード中はチェックボックス（画面右端寄り）と
+    // 重ならないよう、通常時より右側の余白を広めに確保する
+    const rowNumRightX = vw - (selection.isActive() ? 34 : 8);
+
     rowMeta.forEach(({ row, rowNumber, displayIndex, isSelected }) => {
       const screenY =
         GUTTER_H + view.ty + displayIndex * BASE_CELL * view.scale;
@@ -358,12 +458,13 @@ window.KC = window.KC || {};
           ctx.stroke();
         }
       }
-      if (showNumbers) {
+      if (showNumbers && (showAllNumbers || rowNumber % 5 === 0)) {
         ctx.fillStyle = isSelected ? "#C46A3E" : numberColor(rowNumber);
         ctx.font = numberFont(rowNumber, 18, "'Zen Maru Gothic', sans-serif");
-        ctx.textAlign = "center";
+        ctx.textAlign = "right";
         ctx.textBaseline = "middle";
-        ctx.fillText(String(rowNumber), numColX0 + 20, midY);
+        // 選択モード中はチェックボックスと重ならないよう右側に余白を多めに取る
+        ctx.fillText(String(rowNumber), rowNumRightX, midY);
       }
     });
 
@@ -372,7 +473,7 @@ window.KC = window.KC || {};
       ctx.beginPath();
       ctx.rect(gutterX0, 0, YARN_LABEL_W, vh);
       ctx.clip();
-      ctx.textAlign = "center";
+      ctx.textAlign = "left";
       ctx.textBaseline = "middle";
       ctx.font = "11px 'Zen Maru Gothic', sans-serif";
       ctx.fillStyle = "#8a8a86";
@@ -381,7 +482,7 @@ window.KC = window.KC || {};
           GUTTER_H + view.ty + displayIndex * BASE_CELL * view.scale;
         const rowH = BASE_CELL * view.scale;
         const midY = screenY + rowH / 2;
-        ctx.fillText(yarnLabelFor(row), numColX0 - 28, midY);
+        ctx.fillText(yarnLabelFor(row), gutterX0 + 6, midY);
       });
       ctx.restore();
     }
@@ -472,7 +573,8 @@ window.KC = window.KC || {};
       if (
         hit.row &&
         !KC.selection.isActive() &&
-        !(KC.rangeSelect && KC.rangeSelect.isActive())
+        !(KC.rangeSelect && KC.rangeSelect.isActive()) &&
+        !(KC.printRangeSelect && KC.printRangeSelect.isActive())
       ) {
         longPressTimer = setTimeout(() => {
           if (gesture === "maybe-pan" && !downInfo.moved) {
@@ -593,6 +695,13 @@ window.KC = window.KC || {};
     const hit = hitTest(pos.x, pos.y);
     if (!hit.row) return;
 
+    if (KC.printRangeSelect && KC.printRangeSelect.isActive()) {
+      if (!hit.inGutter && hit.valid) {
+        KC.printRangeSelect.onCellTap(hit.row, hit.col);
+      }
+      return;
+    }
+
     if (KC.rangeSelect && KC.rangeSelect.isActive()) {
       if (!hit.inGutter && hit.valid) {
         KC.rangeSelect.onCellTap(hit.row, hit.col);
@@ -659,6 +768,7 @@ window.KC = window.KC || {};
     KC.bus.on("rowsChanged", () => draw());
     KC.bus.on("selectionChanged", () => draw());
     KC.bus.on("rangeSelectionChanged", () => draw());
+    KC.bus.on("printRangeSelectionChanged", () => draw());
     KC.bus.on("sizeChanged", () => resetView());
     KC.bus.on("dataReplaced", () => resetView());
 

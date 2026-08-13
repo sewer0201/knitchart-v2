@@ -19,6 +19,8 @@ window.KC = window.KC || {};
     document.querySelectorAll(".tabbar-btn").forEach((btn) => {
       btn.addEventListener("click", () => activateTab(btn.dataset.tab));
     });
+    // 他モジュールから「保存タブに戻る」等、タブ切り替えだけを依頼したい場合の入口
+    KC.bus.on("requestActivateTab", activateTab);
   }
 
   function activateTab(tab) {
@@ -100,21 +102,25 @@ window.KC = window.KC || {};
 
     KC.bus.on("selectionChanged", updateKnitToolbar);
     KC.bus.on("rangeSelectionChanged", updateKnitToolbar);
+    KC.bus.on("printRangeSelectionChanged", updateKnitToolbar);
     updateKnitToolbar();
   }
 
   function updateKnitToolbar() {
     const bulkActive = KC.selection.isActive();
     const rangeActive = KC.rangeSelect.isActive();
-    q("knit-toolbar-normal").classList.toggle(
-      "is-hidden",
-      bulkActive || rangeActive,
-    );
+    const printRangeActive = KC.printRangeSelect && KC.printRangeSelect.isActive();
+    const anyModeActive = bulkActive || rangeActive || printRangeActive;
+    q("knit-toolbar-normal").classList.toggle("is-hidden", anyModeActive);
     q("knit-toolbar-bulk").classList.toggle("is-hidden", !bulkActive);
     q("knit-toolbar-range").classList.toggle("is-hidden", !rangeActive);
+    q("knit-toolbar-printrange").classList.toggle(
+      "is-hidden",
+      !printRangeActive,
+    );
     document
       .getElementById("tabbar")
-      .classList.toggle("is-hidden", bulkActive || rangeActive);
+      .classList.toggle("is-hidden", anyModeActive);
 
     if (bulkActive) {
       const n = KC.selection.count();
@@ -182,6 +188,7 @@ window.KC = window.KC || {};
     KC.sizeTab.init();
     KC.guideLines.init();
     KC.exportTab.init();
+    KC.printTab.init();
     KC.howto.init();
     // 各モジュールの初期化が終わってから、以後の変更を自動保存するようにする
     KC.storage.bindAutoSave();

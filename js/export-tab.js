@@ -20,13 +20,6 @@ window.KC = window.KC || {};
     nameInput = document.getElementById("project-name-input");
     const importInput = document.getElementById("import-input");
     let awaitingImport = false;
-    document.getElementById("export-png-btn").addEventListener("click", () => {
-      KC.loading.showThen("PNG画像を書き出し中…", () => {
-        KC.pngExport.download(KC.state.get(), projectName());
-        KC.loading.hide();
-        KC.bus.emit("toast", "PNG画像を書き出しました");
-      });
-    });
     document.getElementById("export-json-btn").addEventListener("click", () => {
       KC.jsonIO.download(projectName());
       KC.bus.emit("toast", "プロジェクトを保存しました");
@@ -109,5 +102,5 @@ window.KC = window.KC || {};
     KC.bus.emit("toast", "新規プロジェクトを開始しました");
   }
 
-  KC.exportTab = { init };
+  KC.exportTab = { init, projectName };
 })(window.KC);
