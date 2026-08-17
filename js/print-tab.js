@@ -59,6 +59,11 @@ window.KC = window.KC || {};
     }
     if (doneBtn) {
       doneBtn.addEventListener("click", () => {
+        // 範囲を選択済み（2点タップ済み）なのに「この範囲を追加/更新」を押し忘れて
+        // 「選択を終了」を押した場合は、終了前に自動で確定させておく
+        if (KC.printRangeSelect.canCommit()) {
+          KC.printRangeSelect.commit();
+        }
         KC.printRangeSelect.exit();
         KC.bus.emit("requestActivateTab", "export");
       });

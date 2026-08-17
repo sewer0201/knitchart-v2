@@ -160,8 +160,10 @@ window.KC = window.KC || {};
     let maxCountOnlyWidth = 0;
     const rowLabels = displayRows.map((dr) => {
       const m = rowMeta.get(dr.rowNumber);
-      const colorLabel = `${yarnLabel(dr.row.bg)}/${yarnLabel(dr.row.fg)}`;
-      const countLabel = m ? `(${m.posFromBottom}/${m.count})` : "(1/1)";
+      const colorLabel = `${yarnLabel(dr.row.bg)} / ${yarnLabel(dr.row.fg)}`;
+      const countLabel = m
+        ? `(${m.posFromBottom} / ${m.count})`
+        : "(1 / 1)";
       const colorLabelW = mctx.measureText(colorLabel).width;
       const countLabelW = mctx.measureText(countLabel).width;
       if (colorLabelW > maxColorOnlyWidth) maxColorOnlyWidth = colorLabelW;

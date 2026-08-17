@@ -23,8 +23,8 @@
       <!-- ============ 編む（メイン） ============ -->
       <section id="view-knit" class="view is-active">
         <div id="knit-toolbar-normal" class="knit-toolbar">
-          <button id="howto-btn" type="button" class="pill-btn subtle" title="使い方を見る">
-            <i class="ti ti-question-mark"></i>使い方
+          <button id="mode-toggle-btn" type="button" class="pill-btn subtle" title="プレビューモードに切り替え">
+            <i class="ti ti-pencil"></i><span class="mode-toggle-label">編集モード</span>
           </button>
           <div>
             <button id="zoom-reset-btn" type="button" class="pill-btn subtle" title="全体を見る" aria-label="全体を見る">
@@ -222,8 +222,8 @@
                 </div>
               </div>
               <div class="row-direction-toggle" role="group" aria-label="目数を増減する方向">
-                <button type="button" class="col-direction-btn" data-col-direction="left">左（小さい番号側）</button>
-                <button type="button" class="col-direction-btn is-active" data-col-direction="right">右（大きい番号側）</button>
+                <button type="button" class="col-direction-btn" data-col-direction="left">左（大きい番号側）</button>
+                <button type="button" class="col-direction-btn is-active" data-col-direction="right">右（小さい番号側）</button>
               </div>
             </div>
 
@@ -274,6 +274,14 @@
             <p class="empty-note">段ごとに [編み図] 段数 セクションの範囲 地の色/柄の色 (セクション内の何段目/続く段数) を表示します。区切り線の色は範囲ごとに変更できます。</p>
             <ul id="print-images-list" class="print-images-list"></ul>
           </div>
+          <div class="panel is-hidden" id="quick-reference-panel">
+            <h2>早見表</h2>
+            <p class="empty-note">編み図全体を、段ごとの繰り返しパターンの一覧（早見表）としてA5サイズの画像で自動的に表示します。編み図を変更した場合は、この保存タブを開き直すと最新の内容に更新されます。段数が多く1枚に収まらない場合は複数ページに分かれます。</p>
+            <ul id="quick-reference-list" class="print-images-list"></ul>
+          </div>
+
+          <!-- バージョン番号はここを直接書き換えてください（自動更新はしていません） -->
+          <p class="app-version">knitting-chart-maker v2.13.0</p>
         </div>
       </section>
 
@@ -407,29 +415,13 @@
       <p id="loading-text" class="loading-text">読み込み中…</p>
     </div>
 
-    <!-- ============ 使い方モーダル ============ -->
-    <div id="howto-backdrop" class="howto-backdrop"></div>
-    <div id="howto-modal" class="howto-modal" role="dialog" aria-modal="true" aria-labelledby="howto-title">
-      <div class="howto-header">
-        <h3 id="howto-title">使い方</h3>
-        <button id="howto-close" type="button" class="sheet-close-btn" aria-label="閉じる">
-          <i class="ti ti-x" aria-hidden="true"></i>
-        </button>
-      </div>
-      <ul class="howto-list">
-        <li><i class="ti ti-hand-click" aria-hidden="true"></i>マス目をタップ：地の色⇄柄の色を切り替え</li>
-        <li><i class="ti ti-arrows-diagonal" aria-hidden="true"></i>ピンチ操作／ドラッグ：拡大縮小・表示位置の移動</li>
-        <li><i class="ti ti-list-numbers" aria-hidden="true"></i>段番号をタップ：その段の編集メニューを開く</li>
-        <li><i class="ti ti-hand-finger" aria-hidden="true"></i>段を長押し：コピー/貼り付けモードに入る(右上のコピーボタンからも開けます)</li>
-      </ul>
-    </div>
-
   </div>
 
   <script src="js/bus.js"></script>
   <script src="js/loading.js"></script>
   <script src="js/state.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/edit-mode.js"></script>
   <script src="js/selection.js"></script>
   <script src="js/range-select.js"></script>
   <script src="js/print-range-select.js"></script>
@@ -441,10 +433,12 @@
   <script src="js/size-tab.js"></script>
   <script src="js/guide-lines.js"></script>
   <script src="js/png-export.js"></script>
+  <script src="js/quick-reference.js"></script>
+  <script src="js/quick-reference-print.js"></script>
   <script src="js/json-io.js"></script>
   <script src="js/export-tab.js"></script>
   <script src="js/print-tab.js"></script>
-  <script src="js/howto.js"></script>
+  <script src="js/quick-reference-tab.js"></script>
   <script src="js/main.js"></script>
 </body>
 

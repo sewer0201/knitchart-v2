@@ -123,8 +123,9 @@ input {
 .knit-toolbar {
   flex-shrink: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px 10px;
   padding: 8px 10px;
   background: var(--panel);
   border-bottom: 1px solid var(--panel-line);
@@ -135,10 +136,18 @@ input {
 }
 .knit-toolbar > div {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  flex: 1 1 auto;
+  justify-content: flex-end;
 }
-#howto-btn {
-  display: none;
+#mode-toggle-btn.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+#mode-toggle-btn.is-active .ti {
+  color: #fff;
 }
 .toolbar-hint {
   flex: 1 1 auto;
@@ -348,7 +357,7 @@ input {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 10px;
 }
 .yarn-list > .empty-note {
@@ -399,6 +408,7 @@ input {
   font-weight: 700;
   font-size: 0.9rem;
   flex: 1 1 auto;
+  min-width: 40px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -592,82 +602,6 @@ input {
 }
 .file-label input[type="file"] {
   display: none;
-}
-
-/* ---------------- 使い方モーダル ---------------- */
-.howto-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(30, 24, 15, 0.4);
-  z-index: 50;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.18s ease;
-}
-.howto-backdrop.is-open {
-  opacity: 1;
-  pointer-events: auto;
-}
-.howto-modal {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -46%) scale(0.97);
-  width: min(340px, 88vw);
-  z-index: 51;
-  background: var(--panel);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 12px 32px rgba(40, 30, 15, 0.22);
-  padding: 18px 20px 20px;
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity 0.18s ease,
-    transform 0.18s ease;
-}
-.howto-modal.is-open {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translate(-50%, -50%) scale(1);
-}
-.howto-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.howto-header h3 {
-  font-size: 1.02rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--ink);
-}
-.howto-header h3 i {
-  color: var(--accent);
-}
-.howto-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.howto-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 0.86rem;
-  line-height: 1.5;
-  color: var(--ink);
-}
-.howto-list li i {
-  flex-shrink: 0;
-  margin-top: 2px;
-  font-size: 1.1rem;
-  color: var(--accent);
 }
 
 /* ---------------- 下部タブバー ---------------- */
@@ -878,6 +812,12 @@ input {
   box-shadow:
     0 0 0 2px var(--panel),
     0 0 0 3.5px var(--accent);
+}
+.swatch-btn:disabled {
+  cursor: default;
+}
+.swatch-btn:disabled:not(.is-selected) {
+  opacity: 0.45;
 }
 .swatch-none {
   position: relative;
@@ -1267,6 +1207,12 @@ input {
   flex-wrap: wrap;
   gap: 8px;
 }
+.app-version {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  margin: 18px 0 4px;
+}
 
 /* ---------------- レスポンシブ（PC幅） ---------------- */
 @media (min-width: 720px) {
@@ -1274,14 +1220,32 @@ input {
     display: flex;
     justify-content: center;
   }
-  #howto-btn {
-    display: inline-block;
-  }
   .app-shell {
     width: 100%;
     box-shadow: 0 0 0 1px var(--panel-line);
   }
   .tab-content {
     padding: 20px 22px 28px;
+  }
+}
+
+/* ---------------- レスポンシブ（狭い画面向け：編む画面ツールバー） ---------------- */
+@media (max-width: 420px) {
+  .knit-toolbar .pill-btn {
+    padding: 0 10px;
+    font-size: 0.78rem;
+    gap: 4px;
+  }
+  .knit-toolbar .pill-btn .ti {
+    font-size: 1rem;
+  }
+}
+@media (max-width: 340px) {
+  /* さらに狭い端末ではラベルを隠してアイコンのみにし、1行に収まりやすくする */
+  .knit-toolbar .mode-toggle-label {
+    display: none;
+  }
+  #knit-toolbar-normal .pill-btn {
+    padding: 0 8px;
   }
 }

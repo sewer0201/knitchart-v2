@@ -107,16 +107,22 @@ window.KC = window.KC || {};
   function findRow(uid) {
     return state.rows.find((r) => r.uid === uid);
   }
+  // 目番号は右から左に大きくなる仕様のため、繰り返し模様の位相(offset)も
+  // 「右端(colIndex=cols-1, 表示目番号1)を起点に左へ数える」向きで統一する。
+  // dispIndex(colIndex) = 右端を0として左に数えた位置（＝表示目番号-1）
+  function dispIndex(colIndex) {
+    return state.cols - 1 - colIndex;
+  }
   function toggleStitch(row, colIndex) {
-    const idx = normalizeOffset(colIndex + row.offset, row.repeat);
+    const idx = normalizeOffset(dispIndex(colIndex) + row.offset, row.repeat);
     row.stitches[idx] = !row.stitches[idx];
   }
   function stitchAt(row, colIndex) {
-    const idx = normalizeOffset(colIndex + row.offset, row.repeat);
+    const idx = normalizeOffset(dispIndex(colIndex) + row.offset, row.repeat);
     return row.stitches[idx];
   }
   function setStitchAt(row, colIndex, value) {
-    const idx = normalizeOffset(colIndex + row.offset, row.repeat);
+    const idx = normalizeOffset(dispIndex(colIndex) + row.offset, row.repeat);
     row.stitches[idx] = !!value;
   }
   function setRowRepeat(row, n) {
@@ -137,8 +143,10 @@ window.KC = window.KC || {};
   function releaseRepeat(row) {
     const targetCols = state.cols;
     if (row.repeat >= targetCols) return; // 既に解除済み
+    // 位相は右端起点(dispIndex)なので、配列も右端(c=targetCols-1)から
+    // 左へ向かって詰めていく（stitches[0]が表示目番号1＝物理右端に対応する）
     const newStitches = [];
-    for (let c = 0; c < targetCols; c++) newStitches.push(stitchAt(row, c));
+    for (let c = targetCols - 1; c >= 0; c--) newStitches.push(stitchAt(row, c));
     row.stitches = newStitches;
     row.repeat = targetCols;
     row.offset = 0;
@@ -179,7 +187,7 @@ window.KC = window.KC || {};
     return true;
   }
   // rowDirection: "top"（大きい番号側から増減）／"bottom"（小さい番号側から増減）
-  // colDirection: "right"（大きい番号側から増減）／"left"（小さい番号側から増減）
+  // colDirection: "right"（小さい番号側から増減＝右端）／"left"（大きい番号側から増減＝左端）
   function applySize(targetRows, targetCols, rowDirection, colDirection) {
     rowDirection = rowDirection === "bottom" ? "bottom" : "top";
     colDirection = colDirection === "left" ? "left" : "right";
@@ -199,18 +207,21 @@ window.KC = window.KC || {};
       removeColumn(colDirection);
     }
   }
-  // direction: "right"（大きい番号側＝右端）／"left"（小さい番号側＝左端）
+  // direction: "right"（小さい番号側＝右端。目番号は右から左に増えるため）
+  //            ／"left"（大きい番号側＝左端）
   function addColumn(direction) {
     direction = direction === "left" ? "left" : "right";
     const newCols = clamp(state.cols + 1, SIZE_MIN, SIZE_MAX);
     if (newCols === state.cols) return;
     state.rows.forEach((row) => {
       if (isRepeatReleased(row)) {
-        if (direction === "left") row.stitches.unshift(false);
+        // stitches[0]は物理右端（表示目番号1）に対応するので、
+        // 右端に足すときはunshift、左端に足すときはpushになる
+        if (direction === "right") row.stitches.unshift(false);
         else row.stitches.push(false);
         row.repeat = row.stitches.length;
-      } else if (direction === "left") {
-        // タイル表示の段は、既存の見た目を保ったまま左に1目伸ばす
+      } else if (direction === "right") {
+        // タイル表示の段は、既存の見た目を保ったまま右に1目伸ばす
         row.offset = normalizeOffset(row.offset - 1, row.repeat);
       }
     });
@@ -222,10 +233,10 @@ window.KC = window.KC || {};
     if (newCols === state.cols) return;
     state.rows.forEach((row) => {
       if (isRepeatReleased(row)) {
-        if (direction === "left") row.stitches.shift();
+        if (direction === "right") row.stitches.shift();
         else row.stitches.pop();
         row.repeat = row.stitches.length || 1;
-      } else if (direction === "left") {
+      } else if (direction === "right") {
         row.offset = normalizeOffset(row.offset + 1, row.repeat);
       }
     });

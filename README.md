@@ -1,4 +1,4 @@
-# 編み図メーカー v2（Knit Chart Maker）
+# 編み図メーカー（knitting-chart-maker）
 
 タブレット・スマホでの利用を第一優先にした編み図作成ツール。ビルド不要の素の
 HTML/CSS/JS で、`index.html` をブラウザで開くだけで動作する。npm等の依存なし。

@@ -725,6 +725,7 @@ window.KC = window.KC || {};
       return;
     }
     if (hit.valid) {
+      if (KC.editMode && KC.editMode.isPreview()) return;
       S.toggleStitch(hit.row, hit.col);
       draw();
     }

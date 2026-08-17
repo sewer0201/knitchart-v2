@@ -10,7 +10,7 @@ window.KC = window.KC || {};
   const S = KC.state;
   let rowsInput, colsInput;
   let rowDirection = "top"; // "top"（大きい番号側）／"bottom"（小さい番号側）
-  let colDirection = "right"; // "right"（大きい番号側）／"left"（小さい番号側）
+  let colDirection = "right"; // "right"（目番号は右から左に増えるので、右側は小さい番号側）／"left"（大きい番号側）
 
   function init() {
     rowsInput = document.getElementById("rows-input");

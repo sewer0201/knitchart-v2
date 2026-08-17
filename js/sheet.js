@@ -49,6 +49,9 @@ window.KC = window.KC || {};
     KC.bus.on("rowsChanged", () => {
       if (currentUid) render();
     });
+    KC.bus.on("editModeChanged", () => {
+      if (currentUid) render();
+    });
   }
 
   function attachSwipeToClose(sheetEl) {
@@ -100,23 +103,29 @@ window.KC = window.KC || {};
       close();
       return;
     }
+    const preview = !!(KC.editMode && KC.editMode.isPreview());
     const state = S.get();
     const rowNumber = S.rowIndex(row.uid) + 1;
-    els.title.textContent = `${rowNumber}段目を編集`;
+    els.title.textContent = preview
+      ? `${rowNumber}段目を確認`
+      : `${rowNumber}段目を編集`;
     els.repeatInput.value = row.repeat;
     els.repeatInput.min = S.REPEAT_MIN;
     els.repeatInput.max = S.repeatMax();
-    els.repeatMinus.disabled = row.repeat <= S.REPEAT_MIN;
-    els.repeatPlus.disabled = row.repeat >= S.repeatMax();
-    els.releaseRepeatBtn.disabled = S.isRepeatReleased(row);
+    els.repeatInput.disabled = preview;
+    els.repeatMinus.disabled = preview || row.repeat <= S.REPEAT_MIN;
+    els.repeatPlus.disabled = preview || row.repeat >= S.repeatMax();
+    els.releaseRepeatBtn.disabled = preview || S.isRepeatReleased(row);
+    els.releaseRepeatBtn.classList.toggle("is-hidden", preview);
 
-    renderSwatchGrid(els.bgSwatches, row.bg, "bg", row);
-    renderSwatchGrid(els.fgSwatches, row.fg, "fg", row);
+    renderSwatchGrid(els.bgSwatches, row.bg, "bg", row, preview);
+    renderSwatchGrid(els.fgSwatches, row.fg, "fg", row, preview);
 
-    els.deleteBtn.disabled = state.rows.length <= 1;
+    els.deleteBtn.classList.toggle("is-hidden", preview);
+    els.deleteBtn.disabled = preview || state.rows.length <= 1;
   }
 
-  function renderSwatchGrid(container, selectedUid, role, row) {
+  function renderSwatchGrid(container, selectedUid, role, row, preview) {
     container.innerHTML = "";
     const state = S.get();
 
@@ -128,6 +137,7 @@ window.KC = window.KC || {};
     noneBtn.title = "未設定（既定色）";
     noneBtn.style.background =
       role === "fg" ? S.DEFAULT_FG_COLOR : S.DEFAULT_BG_COLOR;
+    noneBtn.disabled = preview;
     noneBtn.addEventListener("click", () => {
       row[role] = null;
       KC.bus.emit("rowsChanged");
@@ -142,6 +152,7 @@ window.KC = window.KC || {};
       btn.style.background = y.color;
       btn.textContent = y.id;
       btn.title = y.id;
+      btn.disabled = preview;
       btn.addEventListener("click", () => {
         row[role] = y.uid;
         KC.bus.emit("rowsChanged");

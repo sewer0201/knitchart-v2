@@ -41,6 +41,12 @@ window.KC = window.KC || {};
 
   /* ---------------- 「編む」画面 上部バー ---------------- */
   function initKnitToolbar() {
+    q("mode-toggle-btn").addEventListener("click", () =>
+      KC.editMode.toggle(),
+    );
+    KC.bus.on("editModeChanged", updateModeToggleBtn);
+    updateModeToggleBtn();
+
     q("enter-selection-btn").addEventListener("click", () =>
       KC.selection.enter(),
     );
@@ -104,6 +110,16 @@ window.KC = window.KC || {};
     KC.bus.on("rangeSelectionChanged", updateKnitToolbar);
     KC.bus.on("printRangeSelectionChanged", updateKnitToolbar);
     updateKnitToolbar();
+  }
+
+  function updateModeToggleBtn() {
+    const btn = q("mode-toggle-btn");
+    const preview = KC.editMode.isPreview();
+    btn.classList.toggle("is-active", preview);
+    btn.title = preview ? "編集モードに切り替え" : "プレビューモードに切り替え";
+    btn.innerHTML = preview
+      ? '<i class="ti ti-eye"></i><span class="mode-toggle-label">プレビューモード</span>'
+      : '<i class="ti ti-pencil"></i><span class="mode-toggle-label">編集モード</span>';
   }
 
   function updateKnitToolbar() {
@@ -189,7 +205,7 @@ window.KC = window.KC || {};
     KC.guideLines.init();
     KC.exportTab.init();
     KC.printTab.init();
-    KC.howto.init();
+    KC.quickReferenceTab.init();
     // 各モジュールの初期化が終わってから、以後の変更を自動保存するようにする
     KC.storage.bindAutoSave();
     activateTab("knit");
