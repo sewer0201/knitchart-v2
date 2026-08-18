@@ -77,14 +77,24 @@ window.KC = window.KC || {};
   }
 
   // ブラケットのrun配列から、描画用のトークン列を作る
-  // （数字と、柄runには丸数字を使うかどうかのフラグをセットで持つ）
+  // （数字と、柄runには丸数字を使うかどうかのフラグをセットで持つ）。
+  // トレイリング文字列には、通常のトレイリング数値に加えて、末尾繰越表記
+  // （pattern.tailSuffix。ブラケットの後ろに続く「地の目数＋柄の目数(丸数字)」）
+  // があればそれも1つの文字列として連結する。KC.quickReference側の
+  // formatPatternText と同じ組み立て方に揃えてある。
   function bracketTokens(pattern) {
     if (pattern.kind === "allBg") return { special: "---" };
-    if (pattern.kind === "allFg") return { tokens: [circled(1)], trailing: 0 };
+    if (pattern.kind === "allFg") return { tokens: [circled(1)], trailingText: "" };
     const tokens = pattern.runs.map((r) =>
       r.fg ? circled(r.len) : String(r.len),
     );
-    return { tokens, trailing: pattern.trailing };
+    const trailingParts = [];
+    if (pattern.trailing > 0) trailingParts.push(String(pattern.trailing));
+    if (pattern.tailSuffix) {
+      trailingParts.push(String(pattern.tailSuffix.bgLen));
+      trailingParts.push(circled(pattern.tailSuffix.fgLen));
+    }
+    return { tokens, trailingText: trailingParts.join("  ") };
   }
 
   // 1グループぶんの各列の表示文字列を作る
@@ -93,7 +103,7 @@ window.KC = window.KC || {};
     return {
       special: bt.special || null, // "---" の場合のみ入る
       bracketTokenList: bt.tokens || [], // ブラケット内の数字を1個ずつの配列で持つ(間隔を個別に制御するため)
-      trailingText: bt.trailing > 0 ? String(bt.trailing) : "",
+      trailingText: bt.trailingText || "",
       rowNumbersText: g.rowNumbers.join(ROW_NUM_SEPARATOR),
       yarnText: `( ${g.bgLabel} / ${g.fgLabel} )`,
       bgLabel: g.bgLabel,

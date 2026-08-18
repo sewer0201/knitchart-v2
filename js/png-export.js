@@ -440,7 +440,7 @@ window.KC = window.KC || {};
   function rangeSummary(state, pr, index) {
     const colLow = displayColNumber(state.cols, pr.endCol);
     const colHigh = displayColNumber(state.cols, pr.startCol);
-    return `${index}：${pr.startRow}〜${pr.endRow}段・${colLow}〜${colHigh}目`;
+    return `${pr.startRow}〜${pr.endRow}段・${colLow}〜${colHigh}目（範囲${index}）`;
   }
 
   function downloadCanvas(canvas, filename) {

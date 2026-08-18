@@ -3,15 +3,16 @@
    編み図グリッドの描画・ピンチズーム/パン・セルタップ・
    段番号タップ（段編集シートを開く）・長押し（選択モードに入る）
 
-   段番号ガター（右）・目番号ガター（上）は共に「画面に固定された
+   段番号ガター（左右）・目番号ガター（上）は共に「画面に固定された
    フローズンペイン」として、セル部分のパン/ズームとは切り離して描画する。
    段番号ガターは縦方向のパン/ズームに追従し（横に動かしても番号が
    画面外に消えない）、目番号ガターは横方向のパン/ズームに追従する
    （縦に動かしても番号が画面外に消えない）。
 
-   段番号ガターは画面右端に固定表示される。ガター内は、セル本体に
-   近い側（左）に「段で使用している毛糸の番号」列、画面右端に最も
-   近い側（外側）に「段番号」列を配置する。
+   段番号ガターは画面左端・右端の両方に固定表示される。ガター内は、
+   セル本体に近い側（内側）に「段で使用している毛糸の番号」列、
+   画面の左端／右端に最も近い側（外側）に「段番号」列を配置する
+   （左右対称のレイアウト）。
 
    印刷範囲選択モード（KC.printRangeSelect）が有効な間は、編み図全体を
    薄く表示した上に、確定済み/選択中の印刷範囲を紫の枠で重ねて描画する。
@@ -45,8 +46,13 @@ window.KC = window.KC || {};
 
   let canvas, ctx, viewport;
   // view.tx / view.ty はセル部分（ガターを除いた本体グリッド）のパン量。
-  // セル本体は画面左端(0)を起点に描画され、ガターはその右側
-  // （画面右端）に固定表示される。
+  // セル本体のコンテンツ座標系はcontentX=0を起点とし、画面上では
+  // screenX = view.tx + contentX*scale の位置に描画される（ガターの有無に
+  // 関わらずこの対応関係は変わらない）。段番号ガターは画面左端・右端の
+  // 両方に固定幅(gutterWidth())で重ねて描画されるため、セル本体が
+  // ガターの下に隠れないよう、初期表示位置(fitToWidth)ではview.txを
+  // 左ガター幅ぶんだけ右にずらし、描画時は左右ガター幅ぶんをクリップ
+  // 領域から除外している。
   // 画面座標 = view.tx + contentX*scale （横）
   // 画面座標 = GUTTER_H + view.ty + contentY*scale （縦）
   let view = { scale: 1, tx: 0, ty: 0 };
@@ -75,12 +81,13 @@ window.KC = window.KC || {};
     const gridH = state.rows.length * BASE_CELL;
     // 横幅基準・縦幅基準それぞれのスケールを計算し、小さい方（＝より縮小が必要な方）を
     // 採用することで、横長・縦長どちらの編み図でも全体が必ず収まるようにする。
-    const scaleW = (vw - gutterW - 16) / gridW;
+    // 左右両方にガターがあるぶん、横幅から2倍差し引く。
+    const scaleW = (vw - gutterW * 2 - 16) / gridW;
     const scaleH = (vh - GUTTER_H - 16) / gridH;
     let scale = Math.min(scaleW, scaleH);
     scale = clampScale(scale);
     view.scale = scale;
-    view.tx = 8;
+    view.tx = gutterW + 8; // セル本体が左ガターの下に隠れないよう右にずらす
     view.ty = 8;
     fitted = true;
   }
@@ -134,8 +141,9 @@ window.KC = window.KC || {};
     const cellScreen = BASE_CELL * view.scale;
     const selection = KC.selection;
 
-    // 可視範囲（セル部分の座標系）だけを描画する
-    const contentXmin = (0 - view.tx) / view.scale;
+    // 可視範囲（セル部分の座標系）だけを描画する。左右にガターがあるぶん、
+    // 可視範囲は画面の[gutterW, vw-gutterW]に対応する。
+    const contentXmin = (gutterW - view.tx) / view.scale;
     const contentXmax = (vw - gutterW - view.tx) / view.scale;
     const contentYmin = (0 - view.ty) / view.scale;
     const contentYmax = (vh - GUTTER_H - view.ty) / view.scale;
@@ -148,13 +156,13 @@ window.KC = window.KC || {};
       Math.ceil(contentYmax / BASE_CELL),
     );
 
-    /* ---- セル本体（画面左端起点・ガターの左側。パン/ズームが効く） ---- */
+    /* ---- セル本体（左右ガターに挟まれた中央部分。パン/ズームが効く） ---- */
     ctx.save();
     ctx.beginPath();
     ctx.rect(
-      0,
+      gutterW,
       GUTTER_H,
-      Math.max(0, vw - gutterW),
+      Math.max(0, vw - gutterW * 2),
       Math.max(0, vh - GUTTER_H),
     );
     ctx.clip();
@@ -380,21 +388,21 @@ window.KC = window.KC || {};
     const showAllNumbers = cellScreen >= 13;
     const showAllColNumbers = cellScreen >= 25;
 
-    /* ---- 目番号ガター（画面上部に固定。常に見える。右のガター分を除いた幅） ---- */
+    /* ---- 目番号ガター（画面上部に固定。常に見える。左右のガター分を除いた幅） ---- */
     ctx.save();
     ctx.fillStyle = "#FAF6EF";
-    ctx.fillRect(0, 0, Math.max(0, vw - gutterW), GUTTER_H);
+    ctx.fillRect(gutterW, 0, Math.max(0, vw - gutterW * 2), GUTTER_H);
     ctx.strokeStyle = "rgba(44,44,42,0.15)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(0, GUTTER_H - 0.5);
+    ctx.moveTo(gutterW, GUTTER_H - 0.5);
     ctx.lineTo(vw - gutterW, GUTTER_H - 0.5);
     ctx.stroke();
 
     if (showNumbers) {
       ctx.save();
       ctx.beginPath();
-      ctx.rect(0, 0, Math.max(0, vw - gutterW), GUTTER_H);
+      ctx.rect(gutterW, 0, Math.max(0, vw - gutterW * 2), GUTTER_H);
       ctx.clip();
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -411,26 +419,37 @@ window.KC = window.KC || {};
     }
     ctx.restore();
 
-    /* ---- 段番号ガター（画面右側に固定。常に見える）
-       セル本体に近い側（左）に毛糸番号列、画面右端側（外側）に段番号列。 ---- */
+    /* ---- 段番号ガター（画面左右両端に固定。常に見える）
+       セル本体に近い側（内側）に毛糸番号列、画面の左端／右端に最も
+       近い側（外側）に段番号列を、左右対称に配置する。 ---- */
     const numW = rowNumWidth();
-    const gutterX0 = vw - gutterW; // ガター全体の左端（＝毛糸番号列の左端／セル本体との境界）
-    const numColX0 = vw - numW; // 段番号列の左端（＝毛糸番号列との境界）
+    const rightGutterX0 = vw - gutterW; // 右ガター全体の左端（＝右の毛糸番号列の左端／セル本体との境界）
+    const rightNumColX0 = vw - numW; // 右の段番号列の左端（＝右の毛糸番号列との境界）
+    const leftYarnColX0 = numW; // 左の毛糸番号列の左端（＝左の段番号列との境界）
     ctx.save();
     ctx.fillStyle = "#FAF6EF";
-    ctx.fillRect(gutterX0, 0, gutterW, vh);
+    ctx.fillRect(0, 0, gutterW, vh); // 左ガター
+    ctx.fillRect(rightGutterX0, 0, gutterW, vh); // 右ガター
     ctx.strokeStyle = "rgba(44,44,42,0.15)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(gutterX0 + 0.5, 0);
-    ctx.lineTo(gutterX0 + 0.5, vh);
-    ctx.moveTo(numColX0 + 0.5, 0);
-    ctx.lineTo(numColX0 + 0.5, vh);
+    // 左ガター：段番号列と毛糸番号列の境界、毛糸番号列とセル本体の境界
+    ctx.moveTo(leftYarnColX0 + 0.5, 0);
+    ctx.lineTo(leftYarnColX0 + 0.5, vh);
+    ctx.moveTo(gutterW + 0.5, 0);
+    ctx.lineTo(gutterW + 0.5, vh);
+    // 右ガター：セル本体と毛糸番号列の境界、毛糸番号列と段番号列の境界
+    ctx.moveTo(rightGutterX0 + 0.5, 0);
+    ctx.lineTo(rightGutterX0 + 0.5, vh);
+    ctx.moveTo(rightNumColX0 + 0.5, 0);
+    ctx.lineTo(rightNumColX0 + 0.5, vh);
     ctx.stroke();
 
-    // 段番号は列内で右寄せにする。選択モード中はチェックボックス（画面右端寄り）と
-    // 重ならないよう、通常時より右側の余白を広めに確保する
-    const rowNumRightX = vw - (selection.isActive() ? 34 : 8);
+    // 段番号は列内で外側（左ガターなら左端寄り、右ガターなら右端寄り）に
+    // 寄せる。選択モード中はチェックボックス（右ガター側・画面右端寄り）と
+    // 重ならないよう、右側だけ余白を広めに確保する。
+    const rightRowNumRightX = vw - (selection.isActive() ? 34 : 8);
+    const leftRowNumLeftX = 8;
 
     rowMeta.forEach(({ row, rowNumber, displayIndex, isSelected }) => {
       const screenY =
@@ -461,43 +480,68 @@ window.KC = window.KC || {};
       if (showNumbers && (showAllNumbers || rowNumber % 5 === 0)) {
         ctx.fillStyle = isSelected ? "#C46A3E" : numberColor(rowNumber);
         ctx.font = numberFont(rowNumber, 18, "'Zen Maru Gothic', sans-serif");
-        ctx.textAlign = "right";
         ctx.textBaseline = "middle";
-        // 選択モード中はチェックボックスと重ならないよう右側に余白を多めに取る
-        ctx.fillText(String(rowNumber), rowNumRightX, midY);
+        // 右ガター：右寄せ（選択モード中はチェックボックスと重ならないよう余白を多めに）
+        ctx.textAlign = "right";
+        ctx.fillText(String(rowNumber), rightRowNumRightX, midY);
+        // 左ガター：左寄せ
+        ctx.textAlign = "left";
+        ctx.fillText(String(rowNumber), leftRowNumLeftX, midY);
       }
     });
 
     if (showNumbers) {
       ctx.save();
-      ctx.beginPath();
-      ctx.rect(gutterX0, 0, YARN_LABEL_W, vh);
-      ctx.clip();
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
       ctx.font = "11px 'Zen Maru Gothic', sans-serif";
       ctx.fillStyle = "#8a8a86";
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(rightGutterX0, 0, YARN_LABEL_W, vh);
+      ctx.clip();
       rowMeta.forEach(({ row, displayIndex }) => {
         const screenY =
           GUTTER_H + view.ty + displayIndex * BASE_CELL * view.scale;
         const rowH = BASE_CELL * view.scale;
         const midY = screenY + rowH / 2;
-        ctx.fillText(yarnLabelFor(row), gutterX0 + 6, midY);
+        ctx.fillText(yarnLabelFor(row), rightGutterX0 + 6, midY);
       });
+      ctx.restore();
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(leftYarnColX0, 0, YARN_LABEL_W, vh);
+      ctx.clip();
+      rowMeta.forEach(({ row, displayIndex }) => {
+        const screenY =
+          GUTTER_H + view.ty + displayIndex * BASE_CELL * view.scale;
+        const rowH = BASE_CELL * view.scale;
+        const midY = screenY + rowH / 2;
+        ctx.fillText(yarnLabelFor(row), leftYarnColX0 + 6, midY);
+      });
+      ctx.restore();
+
       ctx.restore();
     }
     ctx.restore();
 
-    /* ---- 右上コーナー（両ガターの交点。段/目数どちらのガター色でもよいので上書きしておく） ---- */
+    /* ---- 左上・右上コーナー（縦横ガターの交点。上書きしておく） ---- */
     ctx.save();
     ctx.fillStyle = "#FAF6EF";
-    ctx.fillRect(gutterX0, 0, gutterW, GUTTER_H);
+    ctx.fillRect(0, 0, gutterW, GUTTER_H);
+    ctx.fillRect(rightGutterX0, 0, gutterW, GUTTER_H);
     ctx.strokeStyle = "rgba(44,44,42,0.15)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(gutterX0 + 0.5, 0);
-    ctx.lineTo(gutterX0 + 0.5, GUTTER_H);
-    ctx.moveTo(gutterX0, GUTTER_H - 0.5);
+    ctx.moveTo(gutterW + 0.5, 0);
+    ctx.lineTo(gutterW + 0.5, GUTTER_H);
+    ctx.moveTo(0, GUTTER_H - 0.5);
+    ctx.lineTo(gutterW, GUTTER_H - 0.5);
+    ctx.moveTo(rightGutterX0 + 0.5, 0);
+    ctx.lineTo(rightGutterX0 + 0.5, GUTTER_H);
+    ctx.moveTo(rightGutterX0, GUTTER_H - 0.5);
     ctx.lineTo(vw, GUTTER_H - 0.5);
     ctx.stroke();
     ctx.restore();
@@ -524,7 +568,9 @@ window.KC = window.KC || {};
     const row = state.rows[rowNumber - 1];
     if (!row) return { row: null };
 
-    if (sx >= vw - gutterW) {
+    // 左右どちらのガター（段番号列・毛糸番号列いずれも）をタップしても
+    // 「ガタータップ」として扱う。
+    if (sx < gutterW || sx >= vw - gutterW) {
       return { row, rowNumber, inGutter: true, valid: true };
     }
     const contentX = (sx - view.tx) / view.scale;

@@ -3,23 +3,38 @@
    編み図データ(KC.state)から「早見表」テキストを生成する。
 
    早見表1行の書式：
-     [ブラケット] トレイリング数値    行番号(複数可、降順) ( 地の毛糸番号 / 柄の毛糸番号 )
+     [ブラケット] トレイリング数値 (末尾繰越の地目数 末尾繰越の柄目数) 行番号(複数可、降順) ( 地の毛糸番号 / 柄の毛糸番号 )
 
-   ルール（サンプルチャート20行から確認済み。詳細はチャットでのやり取り参照）：
+   ルール（サンプルチャート＋実データ(ベスト編み図⑤)185行との突き合わせで確認済み）：
    1. 各段を「表示目番号順」（画面の右端＝表示目番号1から左端へ）で読む。
    2. トレイリング数値 = 表示目番号1から数えて、最初に柄(fg)が出てくるまでの
       地(bg)の目数。位置1がすでに柄なら0（表記なし）。
    3. ブラケットは、その段の「実際の最小繰り返し周期」（保存されているrepeat値は
       信用せず、パターン自体から求め直す。最低2回タイルされているものだけを
       繰り返しとみなす）を、地→柄の塊(run)に分解して作る。
-      - 素直に位置1から1周期分読んだときに柄で終わっていれば、それをそのまま使う
-        （row19のように、たまたま柄で終わる場合はトレイリングとの重複处理は不要）。
-      - 柄で終わらない場合は、周期を全ての開始位置で回転させ「柄で終わる」
-        パターンのうち、トークン数が最も少ない（＝地/柄の塊が自然にまとまる）
-        ものを採用する。
+      - 周期配列は円環（先頭と末尾が繋がっている）とみなす。先頭の塊と末尾の塊が
+        同じ種類（地/柄）なら、それらは本来1つの塊なので必ず結合してから数える
+        （結合を怠ると塊の個数を誤って多く数えてしまう）。
+      - 「塊の切れ目」だけを開始位置候補とし、柄(fg)の塊で終わる回転のうち、
+        トークン数が最も少ない（＝地/柄の塊が自然にまとまる）ものを候補とする。
+      - 候補が複数（同数タイ）ある場合は、後述の「末尾繰越」も考慮したうえで
+        最も開始位置indexが大きい（＝周期配列の後方寄りにある）ものを採用する。
+        具体的には、開始位置indexが
+          period - trailing - tailBgLen - tailFgLen
+        以下であるものの中から、開始位置indexが最大のものを選ぶ
+        （tailBgLen / tailFgLen はルール3.5参照。地のみで終わる通常行では両方0）。
+   3.5 末尾繰越（左端＝表示目番号cols）が柄(fg)で終わる行について：
+      - full配列(表示順)の末尾から連続する柄(fg)の目数を tailFgLen、その直前に
+        連続する地(bg)の目数を tailBgLen とする（地で終わる行は両方0）。
+      - トレイリング数値が0（位置1がすでに柄）で、かつ周期配列の先頭の塊と末尾の
+        塊が同じ種類（＝柄同士。ルール3参照）の場合にかぎり、その柄の塊が周期の
+        境界をまたいで実在することを示すため、ブラケットの後ろに
+        「tailBgLen ○tailFgLen（柄なので丸数字）」を追加で表記する。
+        それ以外の場合はこの追加表記はしない。
    4. 特殊表記：1段まるごと地 → "---"。1段まるごと柄 → "[①]"。
-   5. 地/柄の毛糸番号の組み合わせ・ブラケット・トレイリング数値がすべて一致する
-      段は、チャート上で連続していなくても1行にまとめる。行番号は降順で列挙する。
+   5. 地/柄の毛糸番号の組み合わせ・ブラケット・トレイリング数値・末尾繰越表記が
+      すべて一致する段は、チャート上で連続していなくても1行にまとめる。
+      行番号は降順で列挙する。
    6. 早見表全体の並び順は、各行(まとめ済み)グループの「最小の行番号」を代表値とし、
       代表値が大きい順（＝編み図の上から下）に並べる。
    ============================================================ */
@@ -36,7 +51,7 @@ window.KC = window.KC || {};
 
   function yarnLabel(uid) {
     const y = S.findYarn(uid);
-    return y ? y.id : "－";
+    return y ? y.id : "-";
   }
 
   // 表示順(index0=表示目番号1=物理右端)のフルパターンを作る。true=柄(fg)
@@ -74,30 +89,76 @@ window.KC = window.KC || {};
     return runs;
   }
 
-  // 1周期分の配列から、ブラケット用のrun配列を求める。
-  // 「柄(fg)で終わる」ことを必須条件とし、素直な読みがそれを満たさない場合は
-  // 全ての回転を試して条件を満たす中でトークン数最小のものを採用する。
-  function buildBracketRuns(periodArr) {
-    const naive = runLengthEncode(periodArr);
-    if (naive[naive.length - 1].value === true) return naive;
-
+  // 周期配列(円環)から、「塊の切れ目」だけを開始位置として、柄(fg)の塊で終わる
+  // 回転をすべて洗い出す。戻り値は [{ start, runs }] の配列（トークン数は問わない）。
+  function enumerateRotations(periodArr) {
     const p = periodArr.length;
-    let best = null;
+    const candidates = [];
     for (let start = 0; start < p; start++) {
+      // 塊の切れ目（直前の要素と種類が変わる位置）だけを候補にする。
+      // そうしないと同じ塊の途中で切ってしまい、塊が不自然に分裂する。
+      if (periodArr[start] === periodArr[(start - 1 + p) % p]) continue;
       const rotated = [];
       for (let i = 0; i < p; i++) rotated.push(periodArr[(start + i) % p]);
       const runs = runLengthEncode(rotated);
-      if (runs[runs.length - 1].value !== true) continue;
-      if (!best || runs.length < best.runs.length) best = { start, runs };
+      if (runs[runs.length - 1].value !== true) continue; // 柄で終わるものだけ
+      candidates.push({ start, runs });
     }
-    return best ? best.runs : naive;
+    return candidates;
+  }
+
+  // 1周期分の配列から、ブラケット用のrun配列を求める。
+  // - 周期配列は円環とみなすため、runLengthEncodeだけでは先頭/末尾が同種の塊を
+  //   誤って2つに分裂させてしまう（enumerateRotationsは塊の切れ目のみを開始位置
+  //   候補にすることでこれを回避している）。
+  // - 柄(fg)の塊で終わる回転のうち、トークン数最小のものだけを候補として残し、
+  //   その中から「開始位置 <= limit」を満たす最大の開始位置を採用する。
+  //   （limitの意味はルール3参照。同数タイのときにどの回転を選ぶかを決めるための
+  //   基準で、これがないと見た目には正しいが人間が書いた早見表とは並びが異なる
+  //   ブラケットが選ばれてしまうことがある）
+  function buildBracketRuns(periodArr, limit) {
+    const naive = runLengthEncode(periodArr);
+    const candidates = enumerateRotations(periodArr);
+    if (candidates.length === 0) return naive;
+
+    const minLen = Math.min(...candidates.map((c) => c.runs.length));
+    const best = candidates.filter((c) => c.runs.length === minLen);
+    const within = best.filter((c) => c.start <= limit);
+    const pool = within.length > 0 ? within : best;
+    let chosen = pool[0];
+    pool.forEach((c) => {
+      if (c.start > chosen.start) chosen = c;
+    });
+    return chosen.runs;
+  }
+
+  // 表示配列の末尾（左端＝表示目番号cols）から連続する柄(fg)の目数と、
+  // その直前に連続する地(bg)の目数を数える。
+  // 末尾が地(bg)で終わる行では、この「末尾繰越」自体が無関係なので両方0を返す
+  // （末尾がbgの塊の途中であっても、それはただの通常のbg run であり、
+  //   ルール3.5の対象にはならない）。
+  function measureTail(full) {
+    if (full[full.length - 1] !== true) return { tailBgLen: 0, tailFgLen: 0 };
+    let i = full.length - 1;
+    let tailFgLen = 0;
+    while (i >= 0 && full[i] === true) {
+      tailFgLen++;
+      i--;
+    }
+    let tailBgLen = 0;
+    while (i >= 0 && full[i] === false) {
+      tailBgLen++;
+      i--;
+    }
+    return { tailBgLen, tailFgLen };
   }
 
   // 1段ぶんのパターンを解析して構造化データを返す（文字列化はしない）
   // 戻り値:
   //   { kind: "allBg" }                                    … 1段まるごと地
   //   { kind: "allFg" }                                    … 1段まるごと柄
-  //   { kind: "pattern", runs: [{fg,len}...], trailing: n } … 通常パターン
+  //   { kind: "pattern", runs: [{fg,len}...], trailing: n,
+  //     tailSuffix: {bgLen, fgLen} | null }                 … 通常パターン
   function analyzeRowPattern(row, cols) {
     const full = fullDisplayPattern(row, cols);
     if (full.every((v) => v === false)) return { kind: "allBg" };
@@ -108,11 +169,26 @@ window.KC = window.KC || {};
 
     const period = findMinimalPeriod(full);
     const periodArr = full.slice(0, period);
-    const runs = buildBracketRuns(periodArr).map((r) => ({
+    const naive = runLengthEncode(periodArr);
+
+    const { tailBgLen, tailFgLen } = measureTail(full);
+
+    // 周期配列の先頭の塊と末尾の塊が同じ種類なら、円環上では本来1つの塊。
+    // トレイリングが0（位置1がすでに柄）のときに限り、その塊が周期の境界を
+    // またいで実在することを示す追加表記（ルール3.5）が必要になる。
+    const needsWrapMerge =
+      naive.length > 1 && naive[0].value === naive[naive.length - 1].value;
+    const tailSuffix =
+      trailing === 0 && needsWrapMerge ? { bgLen: tailBgLen, fgLen: tailFgLen } : null;
+
+    // タイになった回転候補のうち、末尾繰越ぶんも考慮した基準位置以下で
+    // もっとも後方のものを選ぶ（ルール3）。
+    const limit = period - trailing - tailBgLen - tailFgLen;
+    const runs = buildBracketRuns(periodArr, limit).map((r) => ({
       fg: r.value,
       len: r.len,
     }));
-    return { kind: "pattern", runs, trailing };
+    return { kind: "pattern", runs, trailing, tailSuffix };
   }
 
   // 構造化されたパターンを早見表のテキスト表記（"[4 ①] 2" など）に変換する
@@ -123,7 +199,13 @@ window.KC = window.KC || {};
       "[" +
       pattern.runs.map((r) => (r.fg ? circled(r.len) : String(r.len))).join(" ") +
       "]";
-    return pattern.trailing > 0 ? `${bracket} ${pattern.trailing}` : bracket;
+    const parts = [bracket];
+    if (pattern.trailing > 0) parts.push(String(pattern.trailing));
+    if (pattern.tailSuffix) {
+      parts.push(String(pattern.tailSuffix.bgLen));
+      parts.push(circled(pattern.tailSuffix.fgLen));
+    }
+    return parts.join(" ");
   }
 
   // state を受け取り、早見表1行ぶんずつの構造化データ配列を返す

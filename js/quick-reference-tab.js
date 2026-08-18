@@ -59,8 +59,7 @@ window.KC = window.KC || {};
       head.className = "print-image-head";
       const label = document.createElement("span");
       label.className = "print-image-label";
-      label.textContent =
-        pages.length > 1 ? `早見表　${i + 1} / ${pages.length}ページ` : "早見表";
+      label.textContent = `${i + 1} / ${pages.length}ページ`;
       head.appendChild(label);
       li.appendChild(head);
 
